@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Infinite Queens Logo Generator</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Infinite Queens Logo Generator</h1>
+    <canvas id="logo" width="512" height="512"></canvas>
+    <div>
+        <button onclick="downloadPNG('logo', 512, 'icon-512.png')">Download 512x512</button>
+        <button onclick="downloadPNG('logo', 192, 'icon-192.png')">Download 192x192</button>
+        <button onclick="downloadPNG('logo', 180, 'apple-touch-icon.png')">Download 180x180 (Apple)</button>
+        <button onclick="downloadPNG('logo', 32, 'favicon-32x32.png')">Download 32x32 (Favicon)</button>
+    </div>
+
+    <script>
+        function drawLogo(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const scale = size / 512;
+            
+            ctx.clearRect(0, 0, size, size);
+            ctx.save();
+            ctx.scale(scale, scale);
+            
+            // Background - gradient
+            const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+            gradient.addColorStop(0, '#2196F3');
+            gradient.addColorStop(1, '#1976D2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Draw infinity symbol
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 40;
+            ctx.lineCap = 'round';
+            
+            // Infinity path
+            ctx.beginPath();
+            const cx = 256;
+            const cy = 256;
+            const radius = 120;
+            
+            for (let t = 0; t <= Math.PI * 2; t += 0.01) {
+                const x = cx + radius * Math.cos(t) / (1 + Math.sin(t) * Math.sin(t));
+                const y = cy + radius * Math.sin(t) * Math.cos(t) / (1 + Math.sin(t) * Math.sin(t));
+                if (t === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Draw chess queen
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            
+            // Queen crown (simplified)
+            const queenCenterX = 256;
+            const queenCenterY = 240;
+            const queenSize = 140;
+            
+            // Crown top
+            ctx.beginPath();
+            ctx.moveTo(queenCenterX, queenCenterY - queenSize / 2);
+            ctx.lineTo(queenCenterX - queenSize / 4, queenCenterY - queenSize / 3);
+            ctx.lineTo(queenCenterX - queenSize / 6, queenCenterY - queenSize / 4);
+            ctx.lineTo(queenCenterX, queenCenterY - queenSize / 5);
+            ctx.lineTo(queenCenterX + queenSize / 6, queenCenterY - queenSize / 4);
+            ctx.lineTo(queenCenterX + queenSize / 4, queenCenterY - queenSize / 3);
+            ctx.lineTo(queenCenterX, queenCenterY - queenSize / 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Crown body
+            ctx.beginPath();
+            ctx.moveTo(queenCenterX - queenSize / 3, queenCenterY - queenSize / 5);
+            ctx.lineTo(queenCenterX - queenSize / 4, queenCenterY + queenSize / 6);
+            ctx.lineTo(queenCenterX + queenSize / 4, queenCenterY + queenSize / 6);
+            ctx.lineTo(queenCenterX + queenSize / 3, queenCenterY - queenSize / 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Base
+            ctx.beginPath();
+            ctx.moveTo(queenCenterX - queenSize / 2.2, queenCenterY + queenSize / 6);
+            ctx.lineTo(queenCenterX - queenSize / 2.5, queenCenterY + queenSize / 3);
+            ctx.lineTo(queenCenterX + queenSize / 2.5, queenCenterY + queenSize / 3);
+            ctx.lineTo(queenCenterX + queenSize / 2.2, queenCenterY + queenSize / 6);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add sparkle/star at top
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(queenCenterX, queenCenterY - queenSize / 2, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        function downloadPNG(canvasId, targetSize, filename) {
+            const sourceCanvas = document.getElementById(canvasId);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = targetSize;
+            tempCanvas.height = targetSize;
+            
+            drawLogo(tempCanvas, targetSize);
+            
+            tempCanvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // Draw initial logo
+        const canvas = document.getElementById('logo');
+        drawLogo(canvas, 512);
+    </script>
+</body>
+</html>
