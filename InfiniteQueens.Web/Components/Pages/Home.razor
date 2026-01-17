@@ -143,7 +143,7 @@
         </label>
     </div>
 
-    @if (gameState.CheckWin())
+    @if (gameState.CheckWin() || isGameWon)
     {
         <div class="win-overlay">
             <div class="win-message">
@@ -575,6 +575,7 @@
         var uri = new Uri(NavigationManager.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         var sizeParam = query["size"];
+        var testWin = query["testWin"];
         
         if (!string.IsNullOrEmpty(sizeParam) && int.TryParse(sizeParam, out int size))
         {
@@ -582,6 +583,13 @@
             {
                 boardSize = size;
             }
+        }
+        
+        // Test mode: show win state immediately
+        if (!string.IsNullOrEmpty(testWin) && testWin == "true")
+        {
+            isGameWon = true;
+            completionTime = TimeSpan.FromSeconds(42);
         }
         
         gameState = new GameState(boardSize);
