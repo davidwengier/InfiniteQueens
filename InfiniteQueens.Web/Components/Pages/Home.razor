@@ -147,14 +147,15 @@
 
     @if (gameState.CheckWin() || isGameWon)
     {
-        <div class="win-overlay">
-            <div class="win-message">
+        <div class="win-overlay" @onclick="CloseWinOverlay">
+            <div class="win-message" @onclick:stopPropagation="true">
                 🎉 Congratulations! 🎉
                 <br />
                 @if (timedMode)
                 {
                     <span style="font-size: 18px; display: block; text-align: center; margin-top: 10px;">Solved in @FormatTime(completionTime ?? elapsedTime)!</span>
                 }
+                <button class="new-game-btn" @onclick="StartNewGame">New Game</button>
             </div>
         </div>
     }
@@ -541,6 +542,30 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         max-width: 90%;
     }
+    
+    .new-game-btn {
+        margin-top: 20px;
+        padding: 12px 30px;
+        font-size: 18px;
+        font-weight: 600;
+        color: white;
+        background-color: #2196F3;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    .new-game-btn:hover {
+        background-color: #1976D2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    }
+    
+    .new-game-btn:active {
+        transform: translateY(0);
+    }
 
     @@keyframes fadeIn {
         from { opacity: 0; }
@@ -871,6 +896,19 @@
     private void ToggleTimedMode()
     {
         timedMode = !timedMode;
+    }
+    
+    private void CloseWinOverlay()
+    {
+        // Clicking on the overlay background closes it
+        isGameWon = false;
+    }
+    
+    private void StartNewGame()
+    {
+        // Close the overlay and start a new game
+        isGameWon = false;
+        ResetGame();
     }
     
     private void HandleCellPointerDown(PointerEventArgs e, int row, int col)
