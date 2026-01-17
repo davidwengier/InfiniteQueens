@@ -904,12 +904,20 @@
         isGameWon = false;
     }
     
-    private void StartNewGame()
+    private async void StartNewGame()
     {
         // Close the overlay and start a new game (no confirmation needed)
-        isGameWon = false;
         completionTime = null;
-        ResetGame();
+        
+        // Generate new game directly without confirmation
+        gameState = new GameState(boardSize);
+        
+        isGenerating = true;
+        isGameWon = false;
+        StateHasChanged();
+        await Task.Delay(100);
+
+        await ResetGameAsync();
     }
     
     private async void ClearBoard()
