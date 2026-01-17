@@ -29,8 +29,8 @@ var context = await browser.NewContextAsync(new()
 var page = await context.NewPageAsync();
 await page.GotoAsync(url, new() { WaitUntil = WaitUntilState.NetworkIdle });
 
-// Wait for the board to be generated
-await page.WaitForTimeoutAsync(3000);
+// Wait for Blazor to fully load
+await page.WaitForTimeoutAsync(5000);
 
 // If simulating win, place queens to win the game
 if (simulateWin)
@@ -50,7 +50,7 @@ if (simulateWin)
         }
     ");
     
-    await page.WaitForTimeoutAsync(500);
+    await page.WaitForTimeoutAsync(1000);
 }
 
 await page.ScreenshotAsync(new()

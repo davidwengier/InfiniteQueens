@@ -585,15 +585,19 @@
             }
         }
         
+        gameState = new GameState(boardSize);
+        
         // Test mode: show win state immediately
         if (!string.IsNullOrEmpty(testWin) && testWin == "true")
         {
             isGameWon = true;
             completionTime = TimeSpan.FromSeconds(42);
+            // Don't call ResetGame in test mode
         }
-        
-        gameState = new GameState(boardSize);
-        ResetGame();
+        else
+        {
+            ResetGame();
+        }
     }
 
     public void Dispose()
