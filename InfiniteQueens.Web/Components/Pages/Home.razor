@@ -645,7 +645,7 @@
         gameState = new GameState(boardSize);
         
         // Update URL with new size
-        NavigationManager.NavigateTo($"/?size={boardSize}", false);
+        NavigationManager.NavigateTo($"?size={boardSize}", false);
         
         // Now show spinner and generate
         isGenerating = true;
