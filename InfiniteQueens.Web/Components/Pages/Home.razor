@@ -107,7 +107,11 @@
                 var hasConflict = gameState.HasConflict(row, col);
                 
                 <div class="cell region-@region @(hasConflict ? "conflict" : "")"
-                     @onclick="() => ToggleQueen(r, c)">
+                     @onclick="() => ToggleQueen(r, c)"
+                     @onpointerdown="() => HandleCellPointerDown(r, c)"
+                     @onpointerenter="() => HandleCellPointerEnter(r, c)"
+                     @onpointerup="HandleCellPointerUp"
+                     @onpointercancel="HandleCellPointerUp">
                     @if (cellState == CellState.ManualCross || isAutoMark)
                     {
                         <span class="cross @(isAutoMark ? "auto" : "")">✕</span>
@@ -536,6 +540,8 @@
     private int currentAttempt = 0;
     private int currentGameNumber = 0;
     private bool timedMode = true;
+    private bool isDragging = false;
+    private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
 
     protected override void OnInitialized()
     {
@@ -811,5 +817,50 @@
     private void ToggleTimedMode()
     {
         timedMode = !timedMode;
+    }
+    
+    private void HandleCellPointerDown(int row, int col)
+    {
+        if (isGameWon)
+            return;
+            
+        isDragging = true;
+        draggedCells.Clear();
+        draggedCells.Add((row, col));
+    }
+    
+    private void HandleCellPointerEnter(int row, int col)
+    {
+        if (!isDragging || isGameWon)
+            return;
+            
+        // Only mark if we haven't marked this cell yet during this drag
+        if (draggedCells.Add((row, col)))
+        {
+            PlaceMarkIfEmpty(row, col);
+        }
+    }
+    
+    private void HandleCellPointerUp()
+    {
+        isDragging = false;
+        draggedCells.Clear();
+    }
+    
+    private void PlaceMarkIfEmpty(int row, int col)
+    {
+        var cellState = gameState.GetCell(row, col);
+        bool isAutoMark = gameState.GetAutoMark(row, col);
+        
+        // Only place marks on empty cells or auto-marks, don't overwrite queens or existing manual marks
+        if (cellState == CellState.Empty && !isAutoMark)
+        {
+            gameState.SetCell(row, col, CellState.ManualCross);
+        }
+        else if (isAutoMark && cellState == CellState.Empty)
+        {
+            gameState.SetAutoMark(row, col, false);
+            gameState.SetCell(row, col, CellState.ManualCross);
+        }
     }
 }
