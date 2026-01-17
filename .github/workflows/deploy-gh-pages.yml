@@ -26,6 +26,9 @@ jobs:
       - name: Publish
         run: dotnet publish InfiniteQueens.Web/InfiniteQueens.csproj -c Release -o release --nologo
 
+      - name: Add version file with timestamp
+        run: echo "{ \"version\": \"${{ github.sha }}\", \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" }" > release/wwwroot/version.json
+
       - name: Change base href in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/InfiniteQueens\/" \/>/g' release/wwwroot/index.html
 
