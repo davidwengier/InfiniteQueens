@@ -68,7 +68,7 @@
                 </button>
             }
         </div>
-        <button @onclick="ResetGame" disabled="@isGenerating">New Game</button>
+        <button @onclick="ClearBoard" disabled="@isGenerating">Clear</button>
     </div>
 
     @if (isGenerating)
@@ -710,7 +710,7 @@
         if (hasPlacedPieces)
         {
             string message = isSameSize 
-                ? "Clear the current board and start a new game?" 
+                ? "Generate a new puzzle? Your current progress will be lost." 
                 : "Changing board size will clear your current progress. Continue?";
             
             bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", message);
@@ -906,9 +906,55 @@
     
     private void StartNewGame()
     {
-        // Close the overlay and start a new game
+        // Close the overlay and start a new game (no confirmation needed)
         isGameWon = false;
+        completionTime = null;
         ResetGame();
+    }
+    
+    private async void ClearBoard()
+    {
+        // Check if user has placed anything
+        bool hasPlacedPieces = false;
+        if (!isGameWon)
+        {
+            for (int r = 0; r < boardSize; r++)
+            {
+                for (int c = 0; c < boardSize; c++)
+                {
+                    if (gameState.Board[r, c] != CellState.Empty)
+                    {
+                        hasPlacedPieces = true;
+                        break;
+                    }
+                }
+                if (hasPlacedPieces) break;
+            }
+        }
+
+        // Ask for confirmation if pieces are placed
+        if (hasPlacedPieces)
+        {
+            bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Clear all your marks and start fresh on this board?");
+            if (!confirmed)
+                return;
+        }
+
+        // Clear the board without regenerating
+        for (int r = 0; r < boardSize; r++)
+        {
+            for (int c = 0; c < boardSize; c++)
+            {
+                gameState.SetCell(r, c, CellState.Empty);
+                gameState.SetAutoMark(r, c, false);
+            }
+        }
+        
+        // Restart the timer
+        if (timedMode)
+        {
+            StartTimer();
+        }
     }
     
     private void HandleCellPointerDown(PointerEventArgs e, int row, int col)
