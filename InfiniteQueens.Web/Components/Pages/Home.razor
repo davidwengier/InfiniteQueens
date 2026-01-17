@@ -566,8 +566,8 @@
     private int currentAttempt = 0;
     private int currentGameNumber = 0;
     private bool timedMode = true;
-    private bool isDragging = false;
-    private bool didDrag = false;
+    private bool pointerIsDown = false;
+    private (int row, int col)? pointerDownCell = null;
     private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
 
     protected override void OnInitialized()
@@ -801,10 +801,10 @@
 
     private void ToggleQueen(int row, int col)
     {
-        // Ignore clicks if game is won or if we just finished a drag
-        if (isGameWon || didDrag)
+        // Ignore clicks if game is won or if we just did a drag operation
+        if (isGameWon || draggedCells.Count > 0)
         {
-            didDrag = false; // Reset for next interaction
+            draggedCells.Clear(); // Reset for next interaction
             return;
         }
             
@@ -866,19 +866,25 @@
         if (isGameWon)
             return;
             
-        isDragging = true;
-        draggedCells.Clear();
-        draggedCells.Add((row, col));
-        PlaceMarkIfEmpty(row, col);
+        pointerIsDown = true;
+        pointerDownCell = (row, col);
     }
     
     private void HandleCellPointerEnter(int row, int col)
     {
-        if (!isDragging || isGameWon)
+        if (!pointerIsDown || isGameWon)
             return;
             
-        // Mark that we actually dragged (moved to a different cell)
-        didDrag = true;
+        // We've moved to a different cell - this is a drag operation
+        if (pointerDownCell.HasValue)
+        {
+            // Mark the initial cell if we haven't already
+            if (draggedCells.Count == 0)
+            {
+                draggedCells.Add(pointerDownCell.Value);
+                PlaceMarkIfEmpty(pointerDownCell.Value.row, pointerDownCell.Value.col);
+            }
+        }
         
         // Only mark if we haven't marked this cell yet during this drag
         if (draggedCells.Add((row, col)))
@@ -889,32 +895,9 @@
     
     private void HandleCellPointerUp()
     {
-        // If we didn't actually drag (just pressed and released on same cell), 
-        // let onclick handle it normally
-        if (!didDrag && draggedCells.Count == 1)
-        {
-            // Remove the mark we placed in pointer down, onclick will handle it
-            var (row, col) = draggedCells.First();
-            var cellState = gameState.GetCell(row, col);
-            if (cellState == CellState.ManualCross)
-            {
-                gameState.SetCell(row, col, CellState.Empty);
-            }
-        }
-        
-        isDragging = false;
-        draggedCells.Clear();
-        
-        // didDrag will be reset in ToggleQueen or after a brief delay
-        if (!didDrag)
-        {
-            // Not a drag, let click handler work
-        }
-        else
-        {
-            // Was a drag, schedule reset after click event has been processed/skipped
-            Task.Delay(50).ContinueWith(_ => InvokeAsync(() => didDrag = false));
-        }
+        pointerIsDown = false;
+        pointerDownCell = null;
+        // Don't clear draggedCells here - it's used in ToggleQueen to detect drag
     }
     
     private void PlaceMarkIfEmpty(int row, int col)
