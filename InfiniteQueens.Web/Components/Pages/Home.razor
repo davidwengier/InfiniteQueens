@@ -1,5 +1,6 @@
 @using Microsoft.JSInterop
 @using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
 @using InfiniteQueens.Models
 @using InfiniteQueens.Services
 @inject IJSRuntime JSRuntime
@@ -108,10 +109,11 @@
                 
                 <div class="cell region-@region @(hasConflict ? "conflict" : "")"
                      @onclick="() => ToggleQueen(r, c)"
-                     @onpointerdown="() => HandleCellPointerDown(r, c)"
+                     @onpointerdown="(e) => HandleCellPointerDown(e, r, c)"
                      @onpointerenter="() => HandleCellPointerEnter(r, c)"
                      @onpointerup="HandleCellPointerUp"
-                     @onpointercancel="HandleCellPointerUp">
+                     @onpointercancel="HandleCellPointerUp"
+                     @oncontextmenu:preventDefault="true">
                     @if (cellState == CellState.ManualCross || isAutoMark)
                     {
                         <span class="cross @(isAutoMark ? "auto" : "")">✕</span>
@@ -454,6 +456,8 @@
         border: 3px solid #333;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         background-color: #333;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .cell {
@@ -467,6 +471,9 @@
         transition: all 0.2s;
         position: relative;
         touch-action: manipulation;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-user-drag: none;
     }
 
     .cell.region-0 { background-color: #ff9999; }
@@ -802,9 +809,14 @@
     private void ToggleQueen(int row, int col)
     {
         // Ignore clicks if game is won or if we just did a drag operation
-        if (isGameWon || draggedCells.Count > 0)
+        if (isGameWon)
+            return;
+            
+        // If we just finished a drag, ignore this click and clear the flag
+        if (draggedCells.Count > 0)
         {
-            draggedCells.Clear(); // Reset for next interaction
+            draggedCells.Clear();
+            StateHasChanged(); // Force UI update after clearing drag state
             return;
         }
             
@@ -861,7 +873,7 @@
         timedMode = !timedMode;
     }
     
-    private void HandleCellPointerDown(int row, int col)
+    private void HandleCellPointerDown(PointerEventArgs e, int row, int col)
     {
         if (isGameWon)
             return;

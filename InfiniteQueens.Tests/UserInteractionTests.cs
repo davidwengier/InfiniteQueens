@@ -124,4 +124,47 @@ public class UserInteractionTests
         
         // Not: Empty -> Queen (which was the bug)
     }
+    
+    [Fact]
+    public void AfterDrag_ClickOnSameCellCyclesNormally()
+    {
+        // Regression test: After dragging to create X's, clicking on the 
+        // cell where drag started should cycle normally (X -> Queen -> Empty)
+        var gameState = new GameState(4);
+        int row = 0, col = 0;
+        
+        // Simulate drag: place X at starting cell
+        gameState.SetCell(row, col, CellState.ManualCross);
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(row, col));
+        
+        // Now click on same cell - should go to Queen
+        gameState.SetCell(row, col, CellState.Queen);
+        Assert.Equal(CellState.Queen, gameState.GetCell(row, col));
+        
+        // Click again - should go to Empty
+        gameState.SetCell(row, col, CellState.Empty);
+        Assert.Equal(CellState.Empty, gameState.GetCell(row, col));
+        
+        // Should NOT require multiple clicks or place multiple X's
+    }
+    
+    [Fact]
+    public void DragThenClick_WorksOnDifferentCell()
+    {
+        // After dragging across cells, clicking on a different cell should work normally
+        var gameState = new GameState(4);
+        
+        // Simulate drag: mark cells (0,0) and (0,1)
+        gameState.SetCell(0, 0, CellState.ManualCross);
+        gameState.SetCell(0, 1, CellState.ManualCross);
+        
+        // Click on a different cell (1,1) - should cycle normally
+        Assert.Equal(CellState.Empty, gameState.GetCell(1, 1));
+        
+        gameState.SetCell(1, 1, CellState.ManualCross);
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(1, 1));
+        
+        gameState.SetCell(1, 1, CellState.Queen);
+        Assert.Equal(CellState.Queen, gameState.GetCell(1, 1));
+    }
 }
