@@ -95,7 +95,7 @@
         <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
     }
 
-    <div class="board" style="grid-template-columns: repeat(@boardSize, 1fr); @(isGenerating ? "display: none;" : "")">>
+    <div class="board" style="grid-template-columns: repeat(@boardSize, 1fr); @(isGenerating ? "display: none;" : "")">
         @for (int row = 0; row < boardSize; row++)
         {
             @for (int col = 0; col < boardSize; col++)
