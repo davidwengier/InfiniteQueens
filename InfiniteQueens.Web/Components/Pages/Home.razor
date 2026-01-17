@@ -865,6 +865,7 @@
         isDragging = true;
         draggedCells.Clear();
         draggedCells.Add((row, col));
+        PlaceMarkIfEmpty(row, col);
     }
     
     private void HandleCellPointerEnter(int row, int col)
