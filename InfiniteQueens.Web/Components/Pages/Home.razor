@@ -1,0 +1,814 @@
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components
+@using InfiniteQueens.Models
+@using InfiniteQueens.Services
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject GameHistory GameHistory
+@inject BoardGenerator BoardGenerator
+@implements IDisposable
+
+@page "/"
+
+<PageTitle>Infinite Queens</PageTitle>
+
+<div class="game-container">
+    @if (timedMode && GameHistory.HasHistory(boardSize))
+    {
+        <div class="history-pane">
+            <h3>@(boardSize)x@(boardSize) Game History</h3>
+            <div class="history-list">
+                @foreach (var (game, index) in GameHistory.GetHistory(boardSize).Select((g, i) => (g, i)))
+                {
+                    <div class="history-item">
+                        @if (index == 0)
+                        {
+                            <span class="medal">🥇</span>
+                        }
+                        else if (index == 1)
+                        {
+                            <span class="medal">🥈</span>
+                        }
+                        else if (index == 2)
+                        {
+                            <span class="medal">🥉</span>
+                        }
+                        else
+                        {
+                            <span class="medal"></span>
+                        }
+                        <span class="game-num">Game #@game.GameNumber</span>
+                        <span class="game-time">@FormatTime(game.Time)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    
+    <h1>Infinite Queens</h1>
+    <p>Place one queen in each coloured region. No two queens can share a row, column, or be diagonally adjacent.</p>
+    <p style="font-size: 14px; color: #888;">Click once for ✕ (mark), twice for ♛ (queen), three times to clear.</p>
+    
+    <div class="controls">
+        @if (timedMode)
+        {
+            <div class="timer-display">
+                ⏱️ @FormatTime(elapsedTime)
+            </div>
+        }
+        <div class="size-buttons">
+            @for (int size = 4; size <= 10; size++)
+            {
+                var s = size;
+                <button class="size-btn @(boardSize == s ? "active" : "")" 
+                        @onclick="() => ChangeBoardSize(s)"
+                        disabled="@isGenerating">
+                    @(s)x@(s)
+                </button>
+            }
+        </div>
+        <button @onclick="ResetGame" disabled="@isGenerating">New Game</button>
+    </div>
+
+    @if (isGenerating)
+    {
+        <div class="spinner-container">
+            <div class="spinner">⏳</div>
+            <p>Generating @(boardSize)x@(boardSize) board...</p>
+            <p style="font-size: 14px; color: #999;">Attempt @currentAttempt...</p>
+            
+            @if (generationLog.Count > 0)
+            {
+                <div class="generation-log" id="generation-log">
+                    @foreach (var log in generationLog)
+                    {
+                        <div class="log-entry">@log</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (!isGenerating && currentGameNumber > 0)
+    {
+        <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
+    }
+
+    <div class="board" style="grid-template-columns: repeat(@boardSize, 50px); @(isGenerating ? "display: none;" : "")">
+        @for (int row = 0; row < boardSize; row++)
+        {
+            @for (int col = 0; col < boardSize; col++)
+            {
+                var r = row;
+                var c = col;
+                var region = gameState.Regions[row, col];
+                var cellState = gameState.Board[row, col];
+                var isAutoMark = gameState.AutoMarks[row, col];
+                var hasConflict = gameState.HasConflict(row, col);
+                
+                <div class="cell region-@region @(hasConflict ? "conflict" : "")"
+                     @onclick="() => ToggleQueen(r, c)">
+                    @if (cellState == CellState.ManualCross || isAutoMark)
+                    {
+                        <span class="cross @(isAutoMark ? "auto" : "")">✕</span>
+                    }
+                    else if (cellState == CellState.Queen)
+                    {
+                        <span class="queen">♛</span>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <div class="toggles-container">
+        <label class="toggle-label" @onclick="ToggleAutoMark" @onclick:preventDefault="true">
+            <span>Auto-mark invalid squares</span>
+            <div class="toggle-switch">
+                <input type="checkbox" checked="@autoMarkInvalid" disabled="@isGenerating" />
+                <span class="toggle-slider"></span>
+            </div>
+        </label>
+        
+        <label class="toggle-label" @onclick="ToggleTimedMode" @onclick:preventDefault="true">
+            <span>Timed games</span>
+            <div class="toggle-switch">
+                <input type="checkbox" checked="@timedMode" />
+                <span class="toggle-slider"></span>
+            </div>
+        </label>
+    </div>
+
+    @if (gameState.CheckWin())
+    {
+        <div class="win-message">
+            🎉 Congratulations! 🎉
+            <br />
+            @if (timedMode)
+            {
+                <span style="font-size: 18px; display: block; text-align: center;">Solved in @FormatTime(completionTime ?? elapsedTime)!</span>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        position: relative;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    .history-pane {
+        position: fixed;
+        left: 20px;
+        top: 20px;
+        background: white;
+        border: 2px solid #2196F3;
+        border-radius: 8px;
+        padding: 15px;
+        width: 220px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .history-pane h3 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        color: #2196F3;
+        text-align: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        font-weight: 600;
+    }
+    
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .history-item {
+        display: grid;
+        grid-template-columns: 25px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .medal {
+        font-size: 16px;
+        text-align: center;
+    }
+    
+    .game-num {
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .game-time {
+        color: #666;
+        font-family: monospace;
+    }
+        padding: 20px;
+        font-family: Arial, sans-serif;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        font-weight: 700;
+    }
+    
+    h2 {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        font-weight: 600;
+    }
+
+    p {
+        margin: 5px 0;
+        color: #666;
+    }
+
+    .controls {
+        margin: 20px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .timer-display {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        font-family: 'Courier New', monospace;
+        background-color: #f0f0f0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: 2px solid #ccc;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .size-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .size-btn {
+        padding: 8px 12px;
+        cursor: pointer;
+        border: 2px solid #666;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+
+    .size-btn:hover:not(:disabled) {
+        background-color: #e0e0e0;
+        transform: translateY(-2px);
+    }
+
+    .size-btn.active {
+        background-color: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+
+    .size-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .controls button:not(.size-btn) {
+        padding: 8px 20px;
+        cursor: pointer;
+        border: 2px solid #666;
+        background-color: #2196F3;
+        color: white;
+        border-radius: 4px;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+
+    .controls button:not(.size-btn):hover:not(:disabled) {
+        background-color: #1976D2;
+    }
+
+    .controls button:not(.size-btn):disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .toggles-container {
+        display: flex;
+        gap: 30px;
+        margin-top: 20px;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+        color: #333;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 26px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 26px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #2196F3;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+    
+    .toggle-switch input:disabled + .toggle-slider {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .controls label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .spinner-container {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .spinner {
+        font-size: 64px;
+        animation: spin 1.5s linear infinite;
+        margin: 20px 0;
+    }
+
+    .spinner-container p {
+        font-size: 18px;
+        color: #666;
+        font-weight: bold;
+    }
+
+    .generation-log {
+        margin-top: 20px;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 300px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        text-align: left;
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+    .log-entry {
+        padding: 3px 0;
+        color: #333;
+        animation: fadeIn 0.3s;
+        white-space: nowrap;
+    }
+
+    .log-entry:first-child {
+        font-weight: bold;
+        color: #2196F3;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .board {
+        display: grid;
+        gap: 2px;
+        border: 3px solid #333;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background-color: #333;
+    }
+
+    .cell {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 32px;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .cell.region-0 { background-color: #ff9999; }
+    .cell.region-1 { background-color: #99ccff; }
+    .cell.region-2 { background-color: #99ff99; }
+    .cell.region-3 { background-color: #ffcc99; }
+    .cell.region-4 { background-color: #ff99ff; }
+    .cell.region-5 { background-color: #ffff99; }
+    .cell.region-6 { background-color: #99ffcc; }
+    .cell.region-7 { background-color: #cc99ff; }
+    .cell.region-8 { background-color: #ffcccc; }
+    .cell.region-9 { background-color: #ccffcc; }
+
+    .cell.conflict {
+        background-color: #ff4444 !important;
+        animation: shake 0.3s;
+    }
+
+    .cell:hover {
+        filter: brightness(1.1);
+        transform: scale(1.05);
+    }
+
+    .queen {
+        user-select: none;
+        filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+    }
+
+    .cross {
+        user-select: none;
+        font-size: 28px;
+        color: #333;
+        opacity: 0.6;
+    }
+
+    .cross.auto {
+        opacity: 0.4;
+        color: #666;
+    }
+
+    .win-message {
+        margin-top: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #2ecc71;
+        animation: pulse 1s infinite;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+</style>
+
+@code {
+    private int boardSize = 6;
+    private GameState gameState = null!;
+    private bool autoMarkInvalid = true;
+    private bool isGenerating = false;
+    private System.Timers.Timer? gameTimer;
+    private DateTime gameStartTime;
+    private TimeSpan elapsedTime;
+    private TimeSpan? completionTime;
+    private bool isGameWon = false;
+    private List<string> generationLog = new List<string>();
+    private int currentAttempt = 0;
+    private int currentGameNumber = 0;
+    private bool timedMode = true;
+
+    protected override void OnInitialized()
+    {
+        // Read board size from URL parameter
+        var uri = new Uri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var sizeParam = query["size"];
+        
+        if (!string.IsNullOrEmpty(sizeParam) && int.TryParse(sizeParam, out int size))
+        {
+            if (size >= 4 && size <= 10)
+            {
+                boardSize = size;
+            }
+        }
+        
+        gameState = new GameState(boardSize);
+        ResetGame();
+    }
+
+    public void Dispose()
+    {
+        gameTimer?.Stop();
+        gameTimer?.Dispose();
+    }
+
+    private void StartTimer()
+    {
+        if (!timedMode)
+            return;
+            
+        completionTime = null;
+        isGameWon = false;
+        gameStartTime = DateTime.Now;
+        elapsedTime = TimeSpan.Zero;
+        
+        gameTimer?.Stop();
+        gameTimer = new System.Timers.Timer(100); // Update every 100ms for smooth display
+        gameTimer.Elapsed += (sender, e) =>
+        {
+            if (!isGameWon)
+            {
+                elapsedTime = DateTime.Now - gameStartTime;
+                InvokeAsync(StateHasChanged);
+            }
+        };
+        gameTimer.Start();
+    }
+
+    private void StopTimer()
+    {
+        gameTimer?.Stop();
+        completionTime = elapsedTime;
+        isGameWon = true;
+        
+        // Only add to game history if in timed mode
+        if (timedMode)
+        {
+            GameHistory.AddResult(boardSize, currentGameNumber, completionTime.Value);
+        }
+    }
+
+    private string FormatTime(TimeSpan time)
+    {
+        if (time.TotalHours >= 1)
+            return $"{(int)time.TotalHours}:{time.Minutes:D2}:{time.Seconds:D2}";
+        else
+            return $"{time.Minutes}:{time.Seconds:D2}";
+    }
+
+    private async Task ChangeBoardSize(int newSize)
+    {
+        // If clicking current size, treat it as "New Game"
+        bool isSameSize = (newSize == boardSize);
+
+        // Check if user has placed anything (and game is not won)
+        bool hasPlacedPieces = false;
+        if (!isGameWon)
+        {
+            for (int r = 0; r < boardSize; r++)
+            {
+                for (int c = 0; c < boardSize; c++)
+                {
+                    if (gameState.Board[r, c] != CellState.Empty)
+                    {
+                        hasPlacedPieces = true;
+                        break;
+                    }
+                }
+                if (hasPlacedPieces) break;
+            }
+        }
+
+        // Ask for confirmation if pieces are placed and game is not won
+        if (hasPlacedPieces)
+        {
+            string message = isSameSize 
+                ? "Clear the current board and start a new game?" 
+                : "Changing board size will clear your current progress. Continue?";
+            
+            bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", message);
+            if (!confirmed)
+                return;
+        }
+
+        // Update size and create new game state
+        boardSize = newSize;
+        gameState = new GameState(boardSize);
+        
+        // Update URL with new size
+        NavigationManager.NavigateTo($"/?size={boardSize}", false);
+        
+        // Now show spinner and generate
+        isGenerating = true;
+        StateHasChanged();
+        await Task.Delay(100);
+
+        await ResetGameAsync();
+    }
+
+    private async void ResetGame()
+    {
+        await ChangeBoardSize(boardSize);
+    }
+
+    private async Task ResetGameAsync()
+    {
+        // Don't set isGenerating again if already set by ChangeBoardSize
+        if (!isGenerating)
+        {
+            isGenerating = true;
+            StateHasChanged();
+            await Task.Delay(100);
+        }
+
+        // Increment game counter for this board size
+        currentGameNumber = GameHistory.GetNextGameNumber(boardSize);
+
+        generationLog.Clear();
+        currentAttempt = 0;
+        
+        bool foundValid = false;
+        
+        await Task.Run(async () =>
+        {
+            int maxAttempts = boardSize >= 10 ? 50 : 100;
+            
+            for (int attempts = 0; attempts < maxAttempts; attempts++)
+            {
+                int attemptNum = attempts + 1;
+                currentAttempt = attemptNum;
+                
+                await InvokeAsync(() =>
+                {
+                    AddLog($"Attempt {attemptNum}: Generating regions...");
+                    StateHasChanged();
+                });
+                
+                await Task.Delay(20); // Small delay for UI update
+                
+                var regions = BoardGenerator.GenerateRegions(boardSize);
+                
+                await InvokeAsync(() =>
+                {
+                    AddLog($"Attempt {attemptNum}: Validating...");
+                    StateHasChanged();
+                });
+                
+                await Task.Delay(20); // Small delay for UI update
+                
+                if (BoardGenerator.IsSolvable(regions, boardSize))
+                {
+                    await InvokeAsync(() =>
+                    {
+                        gameState.SetRegions(regions);
+                        AddLog($"✓ Attempt {attemptNum}: Valid board found!");
+                        foundValid = true;
+                        StateHasChanged();
+                    });
+                    break;
+                }
+                else
+                {
+                    await InvokeAsync(() =>
+                    {
+                        AddLog($"✗ Attempt {attemptNum}: No solution exists");
+                        StateHasChanged();
+                    });
+                }
+                
+                await Task.Delay(20); // Small delay between attempts
+            }
+            
+            if (!foundValid)
+            {
+                await InvokeAsync(() =>
+                {
+                    AddLog($"⚠ Using best attempt after {currentAttempt} tries");
+                    StateHasChanged();
+                });
+            }
+        });
+
+        isGenerating = false;
+        StateHasChanged();
+        
+        // Start the timer after board is generated
+        StartTimer();
+    }
+     
+    private void AddLog(string message)
+    {
+        generationLog.Add(message);
+        // Keep up to 50 messages for better scrolling effect
+        if (generationLog.Count > 50)
+            generationLog.RemoveAt(0);
+    }
+
+    private void ToggleQueen(int row, int col)
+    {
+        // Ignore clicks if game is won
+        if (isGameWon)
+            return;
+            
+        var oldState = gameState.GetCell(row, col);
+        bool wasAutoMark = gameState.GetAutoMark(row, col);
+        
+        // If clicking on an auto-mark, convert it to manual mark
+        if (wasAutoMark && oldState == CellState.Empty)
+        {
+            gameState.SetAutoMark(row, col, false);
+            gameState.SetCell(row, col, CellState.ManualCross);
+            return;
+        }
+        
+        // If this was a queen being removed, clear its auto-marks
+        if (oldState == CellState.Queen)
+        {
+            gameState.RemoveAutoMarksFromQueen(row, col);
+        }
+        
+        // Cycle through: Empty -> ManualCross -> Queen -> Empty
+        var nextState = oldState switch
+        {
+            CellState.Empty => CellState.ManualCross,
+            CellState.ManualCross => CellState.Queen,
+            CellState.Queen => CellState.Empty,
+            _ => CellState.Empty
+        };
+        gameState.SetCell(row, col, nextState);
+        
+        // If we just placed a queen and auto-mark is enabled, mark invalid squares
+        if (autoMarkInvalid && oldState != CellState.Queen && nextState == CellState.Queen)
+        {
+            gameState.AutoMarkInvalidSquares(row, col);
+        }
+        
+        // Check for win condition
+        if (!isGameWon && gameState.CheckWin())
+        {
+            StopTimer();
+        }
+    }
+    
+    private void ToggleAutoMark()
+    {
+        if (!isGenerating)
+        {
+            autoMarkInvalid = !autoMarkInvalid;
+        }
+    }
+    
+    private void ToggleTimedMode()
+    {
+        timedMode = !timedMode;
+    }
+}

@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/InfiniteQueens.Web/">
+    <Project Path="InfiniteQueens.Web/InfiniteQueens.csproj" />
+  </Folder>
+  <Project Path="InfiniteQueens.Core/InfiniteQueens.Core.csproj" />
+  <Project Path="InfiniteQueens.Tests/InfiniteQueens.Tests.csproj" />
+</Solution>
