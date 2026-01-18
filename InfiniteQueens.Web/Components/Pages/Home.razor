@@ -296,7 +296,7 @@
                 {
                     await InvokeAsync(() =>
                     {
-                        AddLog($"✗ Attempt {attemptNum}: Invalid difficulty or no unique solution");
+                        AddLog($"✗ Attempt {attemptNum}: Wrong difficulty or unsolvable");
                         StateHasChanged();
                     });
                 }

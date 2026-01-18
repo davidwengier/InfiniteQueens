@@ -96,14 +96,12 @@ public class BoardGenerator
     public bool IsSolvable(int[,] regions, int boardSize)
     {
         var testBoard = new bool[boardSize, boardSize];
-        int solutionCount = 0;
-        CountSolutions(0, testBoard, regions, boardSize, ref solutionCount);
-        return solutionCount == 1;
+        return SolveBacktrack(0, testBoard, regions, boardSize);
     }
 
     public bool IsSolvableWithDifficulty(int[,] regions, int boardSize, Difficulty difficulty)
     {
-        // First check if it has exactly one solution
+        // First check if it has at least one solution
         if (!IsSolvable(regions, boardSize))
             return false;
 
@@ -175,17 +173,10 @@ public class BoardGenerator
             : 0.0;
     }
 
-    private void CountSolutions(int region, bool[,] testBoard, int[,] regions, int boardSize, ref int solutionCount)
+    private bool SolveBacktrack(int region, bool[,] testBoard, int[,] regions, int boardSize)
     {
         if (region == boardSize)
-        {
-            solutionCount++;
-            return;
-        }
-
-        // Early exit if we already found more than one solution
-        if (solutionCount > 1)
-            return;
+            return true;
 
         // Find all cells in this region
         var cells = new List<(int row, int col)>();
@@ -206,14 +197,13 @@ public class BoardGenerator
 
             testBoard[row, col] = true;
 
-            CountSolutions(region + 1, testBoard, regions, boardSize, ref solutionCount);
+            if (SolveBacktrack(region + 1, testBoard, regions, boardSize))
+                return true;
 
             testBoard[row, col] = false;
-
-            // Early exit if we already found more than one solution
-            if (solutionCount > 1)
-                return;
         }
+
+        return false;
     }
 
     private bool CanPlaceQueen(int row, int col, bool[,] testBoard, int boardSize)
