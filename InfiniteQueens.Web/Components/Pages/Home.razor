@@ -44,37 +44,14 @@
         <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
     }
 
-    <div class="board" style="grid-template-columns: repeat(@boardSize, 1fr); --board-size: @boardSize; @(isGenerating ? "display: none;" : "")">
-        @for (int row = 0; row < boardSize; row++)
-        {
-            @for (int col = 0; col < boardSize; col++)
-            {
-                var r = row;
-                var c = col;
-                var region = gameState.Regions[row, col];
-                var cellState = gameState.Board[row, col];
-                var isAutoMark = gameState.AutoMarks[row, col];
-                var hasConflict = gameState.HasConflict(row, col);
-                
-                <div class="cell region-@region @(hasConflict ? "conflict" : "")"
-                     @onclick="() => ToggleQueen(r, c)"
-                     @onpointerdown="(e) => HandleCellPointerDown(e, r, c)"
-                     @onpointerenter="() => HandleCellPointerEnter(r, c)"
-                     @onpointerup="HandleCellPointerUp"
-                     @onpointercancel="HandleCellPointerUp"
-                     @oncontextmenu:preventDefault="true">
-                    @if (cellState == CellState.ManualCross || isAutoMark)
-                    {
-                        <span class="cross @(isAutoMark ? "auto" : "")">✕</span>
-                    }
-                    else if (cellState == CellState.Queen)
-                    {
-                        <span class="queen">♛</span>
-                    }
-                </div>
-            }
-        }
-    </div>
+    <GameBoard 
+        BoardSize="@boardSize"
+        IsHidden="@isGenerating"
+        GameState="@gameState"
+        OnCellClick="@((coords) => ToggleQueen(coords.row, coords.col))"
+        OnCellPointerDown="@((args) => HandleCellPointerDown(args.e, args.row, args.col))"
+        OnCellPointerEnter="@((coords) => HandleCellPointerEnter(coords.row, coords.col))"
+        OnCellPointerUp="@HandleCellPointerUp" />
 
     <div class="toggles-container">
         <ToggleSwitch 

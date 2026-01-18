@@ -1,0 +1,57 @@
+@using InfiniteQueens.Models
+@using InfiniteQueens.Services
+
+<div class="board" style="grid-template-columns: repeat(@BoardSize, 1fr); --board-size: @BoardSize; @(IsHidden ? "display: none;" : "")">
+    @for (int row = 0; row < BoardSize; row++)
+    {
+        @for (int col = 0; col < BoardSize; col++)
+        {
+            var r = row;
+            var c = col;
+            var region = GameState.Regions[row, col];
+            var cellState = GameState.Board[row, col];
+            var isAutoMark = GameState.AutoMarks[row, col];
+            var hasConflict = GameState.HasConflict(row, col);
+            
+            <div class="cell region-@region @(hasConflict ? "conflict" : "")"
+                 @onclick="() => OnCellClick.InvokeAsync((r, c))"
+                 @onpointerdown="(e) => OnCellPointerDown.InvokeAsync((e, r, c))"
+                 @onpointerenter="() => OnCellPointerEnter.InvokeAsync((r, c))"
+                 @onpointerup="OnCellPointerUp"
+                 @onpointercancel="OnCellPointerUp"
+                 @oncontextmenu:preventDefault="true">
+                @if (cellState == CellState.ManualCross || isAutoMark)
+                {
+                    <span class="cross @(isAutoMark ? "auto" : "")">✕</span>
+                }
+                else if (cellState == CellState.Queen)
+                {
+                    <span class="queen">♛</span>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int BoardSize { get; set; }
+    
+    [Parameter]
+    public bool IsHidden { get; set; }
+    
+    [Parameter]
+    public GameState GameState { get; set; } = null!;
+    
+    [Parameter]
+    public EventCallback<(int row, int col)> OnCellClick { get; set; }
+    
+    [Parameter]
+    public EventCallback<(PointerEventArgs e, int row, int col)> OnCellPointerDown { get; set; }
+    
+    [Parameter]
+    public EventCallback<(int row, int col)> OnCellPointerEnter { get; set; }
+    
+    [Parameter]
+    public EventCallback OnCellPointerUp { get; set; }
+}
