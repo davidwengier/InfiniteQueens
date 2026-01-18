@@ -97,7 +97,8 @@ public class BoardGenerator
         double constraintDensity = CalculateConstraintDensity(regions, boardSize);
         double threshold = boardSize switch
         {
-            6 => 0.45,     // 6x6 slightly higher threshold
+            5 => 0.5,      // 5x5 boards have higher density
+            6 => 0.45,     // 6x6 slightly lower
             _ => 0.4       // 8x8 and larger can be more selective
         };
         
