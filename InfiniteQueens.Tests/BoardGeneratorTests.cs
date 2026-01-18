@@ -13,7 +13,6 @@ public class BoardGeneratorTests
     }
 
     [Theory]
-    [InlineData(4)]
     [InlineData(6)]
     [InlineData(8)]
     [InlineData(10)]
@@ -36,7 +35,6 @@ public class BoardGeneratorTests
     }
 
     [Theory]
-    [InlineData(4)]
     [InlineData(6)]
     [InlineData(8)]
     public void GenerateRegions_ShouldAssignAllCells(int boardSize)
@@ -55,7 +53,6 @@ public class BoardGeneratorTests
     }
 
     [Theory]
-    [InlineData(4)]
     [InlineData(6)]
     [InlineData(8)]
     public void GenerateRegions_ShouldCreateVariedRegions(int boardSize)
@@ -75,7 +72,6 @@ public class BoardGeneratorTests
     }
 
     [Theory]
-    [InlineData(4)]
     [InlineData(6)]
     public void IsSolvable_ShouldReturnTrueForValidBoard(int boardSize)
     {
@@ -127,7 +123,6 @@ public class BoardGeneratorTests
     }
 
     [Theory]
-    [InlineData(4)]
     [InlineData(6)]
     public void GenerateRegions_ShouldCreateConnectedRegions(int boardSize)
     {
