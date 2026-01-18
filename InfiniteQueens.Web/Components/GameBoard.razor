@@ -5,7 +5,9 @@
 <div class="board" 
      style="grid-template-columns: repeat(@BoardSize, 1fr); --board-size: @BoardSize; @(IsHidden ? "display: none;" : "")"
      @onpointermove="HandleBoardPointerMove"
-     @onpointermove:preventDefault="true">
+     @onpointermove:preventDefault="true"
+     @onpointerup="OnCellPointerUp"
+     @onpointercancel="OnCellPointerUp">
     @for (int row = 0; row < BoardSize; row++)
     {
         @for (int col = 0; col < BoardSize; col++)

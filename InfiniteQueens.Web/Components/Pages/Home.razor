@@ -93,6 +93,7 @@
     private (int row, int col)? pointerDownCell = null;
     private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
     private bool wasDragging = false; // Track if we actually dragged vs just tapped
+    private DotNetObjectReference<Home>? dotNetHelper;
 
     protected override void OnInitialized()
     {
@@ -125,10 +126,26 @@
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetHelper = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("setupGlobalPointerHandlers", dotNetHelper);
+        }
+    }
+
     public void Dispose()
     {
         gameTimer?.Stop();
         gameTimer?.Dispose();
+        dotNetHelper?.Dispose();
+    }
+
+    [JSInvokable]
+    public void HandleGlobalPointerUp()
+    {
+        HandleCellPointerUp();
     }
 
     private void StartTimer()

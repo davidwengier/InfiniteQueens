@@ -62,6 +62,17 @@
             
             return null;
         };
+
+        window.setupGlobalPointerHandlers = function(dotnetHelper) {
+            // Add global pointer up handler to catch releases outside the board
+            document.addEventListener('pointerup', function() {
+                dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
+            });
+            
+            document.addEventListener('pointercancel', function() {
+                dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
+            });
+        };
     </script>
 </body>
 
