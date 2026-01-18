@@ -17,6 +17,7 @@
                  @onclick="() => OnCellClick.InvokeAsync((r, c))"
                  @onpointerdown="(e) => OnCellPointerDown.InvokeAsync((e, r, c))"
                  @onpointerenter="() => OnCellPointerEnter.InvokeAsync((r, c))"
+                 @onpointermove="(e) => OnCellPointerMove.InvokeAsync((e, r, c))"
                  @onpointerup="OnCellPointerUp"
                  @onpointercancel="OnCellPointerUp"
                  @oncontextmenu:preventDefault="true">
@@ -51,6 +52,9 @@
     
     [Parameter]
     public EventCallback<(int row, int col)> OnCellPointerEnter { get; set; }
+    
+    [Parameter]
+    public EventCallback<(PointerEventArgs e, int row, int col)> OnCellPointerMove { get; set; }
     
     [Parameter]
     public EventCallback OnCellPointerUp { get; set; }

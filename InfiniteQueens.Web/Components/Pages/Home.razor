@@ -51,6 +51,7 @@
         OnCellClick="@((coords) => ToggleQueen(coords.row, coords.col))"
         OnCellPointerDown="@((args) => HandleCellPointerDown(args.e, args.row, args.col))"
         OnCellPointerEnter="@((coords) => HandleCellPointerEnter(coords.row, coords.col))"
+        OnCellPointerMove="@((args) => HandleCellPointerMove(args.e, args.row, args.col))"
         OnCellPointerUp="@HandleCellPointerUp" />
 
     <div class="toggles-container">
@@ -484,6 +485,16 @@
         if (draggedCells.Add((row, col)))
         {
             PlaceMarkIfEmpty(row, col);
+        }
+    }
+    
+    private void HandleCellPointerMove(PointerEventArgs e, int row, int col)
+    {
+        // For touch devices, pointermove events are used instead of pointerenter
+        // This ensures dragging works on mobile/touch devices
+        if (e.PointerType == "touch" && pointerIsDown && !isGameWon)
+        {
+            HandleCellPointerEnter(row, col);
         }
     }
     

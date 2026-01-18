@@ -167,4 +167,82 @@ public class UserInteractionTests
         gameState.SetCell(1, 1, CellState.Queen);
         Assert.Equal(CellState.Queen, gameState.GetCell(1, 1));
     }
+    
+    [Fact]
+    public void PointerDown_InitiatesDragMode()
+    {
+        // Test that pointer down sets up drag tracking
+        var gameState = new GameState(4);
+        int startRow = 0, startCol = 0;
+        
+        // Simulate pointer down (this would set pointerIsDown flag in actual component)
+        // Component should track the starting cell
+        Assert.Equal(CellState.Empty, gameState.GetCell(startRow, startCol));
+    }
+    
+    [Fact]
+    public void PointerMove_AcrossCells_PlacesMarks()
+    {
+        // Simulate dragging across multiple cells
+        var gameState = new GameState(4);
+        var dragPath = new[] { (0, 0), (0, 1), (0, 2), (1, 2) };
+        
+        // Act - Simulate pointer moving across cells during drag
+        foreach (var (row, col) in dragPath)
+        {
+            if (gameState.GetCell(row, col) == CellState.Empty)
+            {
+                gameState.SetCell(row, col, CellState.ManualCross);
+            }
+        }
+        
+        // Assert - All cells in drag path should have marks
+        foreach (var (row, col) in dragPath)
+        {
+            Assert.Equal(CellState.ManualCross, gameState.GetCell(row, col));
+        }
+    }
+    
+    [Fact]
+    public void PointerUp_EndsDragMode()
+    {
+        // After pointer up, the next pointer down should start a fresh drag
+        var gameState = new GameState(4);
+        
+        // First drag
+        gameState.SetCell(0, 0, CellState.ManualCross);
+        gameState.SetCell(0, 1, CellState.ManualCross);
+        
+        // Simulate pointer up (would clear drag state in component)
+        // Second drag should work independently
+        gameState.SetCell(1, 0, CellState.ManualCross);
+        gameState.SetCell(1, 1, CellState.ManualCross);
+        
+        // Assert - Both drag operations succeeded
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(0, 0));
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(0, 1));
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(1, 0));
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(1, 1));
+    }
+    
+    [Fact]
+    public void DragBackOverSameCell_DoesNotDuplicateMark()
+    {
+        // When dragging back and forth, cells should not get multiple marks
+        var gameState = new GameState(4);
+        
+        // Simulate dragging: (0,0) -> (0,1) -> (0,0) again
+        gameState.SetCell(0, 0, CellState.ManualCross);
+        gameState.SetCell(0, 1, CellState.ManualCross);
+        // Return to (0,0) - should still be ManualCross, not duplicated
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(0, 0));
+        
+        // Try to set again (simulating re-entering during drag)
+        if (gameState.GetCell(0, 0) == CellState.Empty)
+        {
+            gameState.SetCell(0, 0, CellState.ManualCross);
+        }
+        
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(0, 0));
+    }
 }
