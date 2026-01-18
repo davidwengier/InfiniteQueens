@@ -313,7 +313,7 @@ p {
     font-size: calc(min(50px, (100vw - 40px - var(--board-size) * 2px - 6px) / var(--board-size)) * 0.64);
     transition: all 0.2s;
     position: relative;
-    touch-action: manipulation;
+    touch-action: none;
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
