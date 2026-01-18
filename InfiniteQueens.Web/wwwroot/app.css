@@ -319,6 +319,8 @@ p {
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Responsive scaling for mobile devices */
