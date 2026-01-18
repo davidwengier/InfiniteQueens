@@ -1,0 +1,32 @@
+@if (IsGenerating)
+{
+    <div class="spinner-container">
+        <div class="spinner">⏳</div>
+        <p>Generating @(BoardSize)x@(BoardSize) board...</p>
+        <p style="font-size: 14px; color: #999;">Attempt @CurrentAttempt...</p>
+        
+        @if (LogEntries.Any())
+        {
+            <div class="generation-log" id="generation-log">
+                @foreach (var log in LogEntries)
+                {
+                    <div class="log-entry">@log</div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsGenerating { get; set; }
+    
+    [Parameter]
+    public int BoardSize { get; set; }
+    
+    [Parameter]
+    public int CurrentAttempt { get; set; }
+    
+    [Parameter]
+    public IEnumerable<string> LogEntries { get; set; } = Enumerable.Empty<string>();
+}

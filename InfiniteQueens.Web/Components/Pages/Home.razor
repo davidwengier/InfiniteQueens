@@ -33,24 +33,11 @@
         <button @onclick="ClearBoard" disabled="@isGenerating">Clear</button>
     </div>
 
-    @if (isGenerating)
-    {
-        <div class="spinner-container">
-            <div class="spinner">⏳</div>
-            <p>Generating @(boardSize)x@(boardSize) board...</p>
-            <p style="font-size: 14px; color: #999;">Attempt @currentAttempt...</p>
-            
-            @if (generationLog.Count > 0)
-            {
-                <div class="generation-log" id="generation-log">
-                    @foreach (var log in generationLog)
-                    {
-                        <div class="log-entry">@log</div>
-                    }
-                </div>
-            }
-        </div>
-    }
+    <GenerationStatus 
+        IsGenerating="@isGenerating"
+        BoardSize="@boardSize"
+        CurrentAttempt="@currentAttempt"
+        LogEntries="@generationLog" />
 
     @if (!isGenerating && currentGameNumber > 0)
     {
