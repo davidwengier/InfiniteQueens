@@ -111,6 +111,7 @@ p {
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    max-width: 100%;
 }
 
 .size-btn {
@@ -340,6 +341,17 @@ p {
         left: auto;
         top: auto;
         box-sizing: border-box;
+    }
+    
+    .size-buttons {
+        gap: 4px;
+    }
+    
+    .size-btn {
+        padding: 6px 8px;
+        font-size: 14px;
+        flex: 1;
+        min-width: 0;
     }
     
     h1 {
