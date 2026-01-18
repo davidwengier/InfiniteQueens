@@ -1,0 +1,36 @@
+@if (IsVisible)
+{
+    <div class="win-overlay" @onclick="OnClose">
+        <div class="win-message" @onclick:stopPropagation="true">
+            🎉 Congratulations! 🎉
+            <br />
+            @if (ShowTime && CompletionTime.HasValue)
+            {
+                <span style="font-size: 18px; display: block; text-align: center; margin-top: 10px;">Solved in @FormatTime(CompletionTime.Value)!</span>
+            }
+            <button class="new-game-btn" @onclick="OnNewGame">New Game</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+    
+    [Parameter]
+    public bool ShowTime { get; set; }
+    
+    [Parameter]
+    public TimeSpan? CompletionTime { get; set; }
+    
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    
+    [Parameter]
+    public EventCallback OnNewGame { get; set; }
+    
+    private string FormatTime(TimeSpan time)
+    {
+        return time.ToString(@"mm\:ss");
+    }
+}

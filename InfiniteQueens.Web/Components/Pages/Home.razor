@@ -107,20 +107,12 @@
         </label>
     </div>
 
-    @if (gameState.CheckWin() || isGameWon)
-    {
-        <div class="win-overlay" @onclick="CloseWinOverlay">
-            <div class="win-message" @onclick:stopPropagation="true">
-                🎉 Congratulations! 🎉
-                <br />
-                @if (timedMode)
-                {
-                    <span style="font-size: 18px; display: block; text-align: center; margin-top: 10px;">Solved in @FormatTime(completionTime ?? elapsedTime)!</span>
-                }
-                <button class="new-game-btn" @onclick="StartNewGame">New Game</button>
-            </div>
-        </div>
-    }
+    <WinOverlay 
+        IsVisible="@(gameState.CheckWin() || isGameWon)"
+        ShowTime="@timedMode"
+        CompletionTime="@(completionTime.HasValue ? completionTime : elapsedTime)"
+        OnClose="@CloseWinOverlay"
+        OnNewGame="@StartNewGame" />
 </div>
 
 @code {
