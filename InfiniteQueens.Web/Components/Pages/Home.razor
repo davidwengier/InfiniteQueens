@@ -30,11 +30,6 @@
             CurrentSize="@boardSize" 
             OnSizeChanged="@ChangeBoardSize"
             Disabled="@isGenerating" />
-        <select @bind="difficulty" disabled="@isGenerating" class="difficulty-selector">
-            <option value="@Difficulty.Easy">Easy</option>
-            <option value="@Difficulty.Medium">Medium</option>
-            <option value="@Difficulty.Hard">Hard</option>
-        </select>
         <button @onclick="ClearBoard" disabled="@isGenerating">Clear</button>
     </div>
 
@@ -94,7 +89,6 @@
     private int currentAttempt = 0;
     private int currentGameNumber = 0;
     private bool timedMode = true;
-    private Difficulty difficulty = Difficulty.Medium;
     private bool pointerIsDown = false;
     private (int row, int col)? pointerDownCell = null;
     private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
@@ -281,12 +275,12 @@
                 
                 await Task.Delay(20); // Small delay for UI update
                 
-                if (BoardGenerator.IsSolvableWithDifficulty(regions, boardSize, difficulty))
+                if (BoardGenerator.IsSolvable(regions, boardSize))
                 {
                     await InvokeAsync(() =>
                     {
                         gameState.SetRegions(regions);
-                        AddLog($"✓ Attempt {attemptNum}: Valid {difficulty} board found!");
+                        AddLog($"✓ Attempt {attemptNum}: Valid board found!");
                         foundValid = true;
                         StateHasChanged();
                     });
@@ -296,7 +290,7 @@
                 {
                     await InvokeAsync(() =>
                     {
-                        AddLog($"✗ Attempt {attemptNum}: Wrong difficulty or unsolvable");
+                        AddLog($"✗ Attempt {attemptNum}: Unsolvable");
                         StateHasChanged();
                     });
                 }
