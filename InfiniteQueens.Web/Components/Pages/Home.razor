@@ -26,17 +26,10 @@
     
     <div class="controls">
         <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
-        <div class="size-buttons">
-            @for (int size = 4; size <= 10; size++)
-            {
-                var s = size;
-                <button class="size-btn @(boardSize == s ? "active" : "")" 
-                        @onclick="() => ChangeBoardSize(s)"
-                        disabled="@isGenerating">
-                    @(s)x@(s)
-                </button>
-            }
-        </div>
+        <SizeSelector 
+            CurrentSize="@boardSize" 
+            OnSizeChanged="@ChangeBoardSize"
+            Disabled="@isGenerating" />
         <button @onclick="ClearBoard" disabled="@isGenerating">Clear</button>
     </div>
 

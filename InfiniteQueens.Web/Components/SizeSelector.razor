@@ -1,0 +1,28 @@
+<div class="size-buttons">
+    @for (int size = MinSize; size <= MaxSize; size++)
+    {
+        var s = size;
+        <button class="size-btn @(CurrentSize == s ? "active" : "")" 
+                @onclick="() => OnSizeChanged.InvokeAsync(s)"
+                disabled="@Disabled">
+            @(s)x@(s)
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int CurrentSize { get; set; }
+    
+    [Parameter]
+    public int MinSize { get; set; } = 4;
+    
+    [Parameter]
+    public int MaxSize { get; set; } = 10;
+    
+    [Parameter]
+    public bool Disabled { get; set; }
+    
+    [Parameter]
+    public EventCallback<int> OnSizeChanged { get; set; }
+}
