@@ -1,90 +1,45 @@
 # Infinite Queens
 
-A minimalistic Blazor WebAssembly implementation of the Queens (also called Crowns) puzzle game.
+A minimalistic puzzle game where you place queens on a board following classic chess rules with a colorful twist.
 
 ## Game Rules
 
-Place one queen in each coloured region such that:
+Place one queen in each colored region such that:
 - No two queens share the same row
 - No two queens share the same column
-- No two queens are diagonally adjacent (only immediate diagonal neighbors are blocked)
-- Exactly one queen per coloured region
-
-## Project Structure
-
-```
-InfiniteQueens/
-├── InfiniteQueens.Web/             # Blazor WebAssembly UI project
-│   ├── Components/
-│   │   ├── Pages/
-│   │   │   └── Home.razor          # Main game page (all game UI)
-│   │   ├── App.razor
-│   │   ├── Routes.razor
-│   │   └── _Imports.razor
-│   ├── wwwroot/
-│   │   ├── index.html              # WASM entry point
-│   │   └── favicon.png
-│   ├── Program.cs                  # Service configuration
-│   └── InfiniteQueens.csproj
-├── InfiniteQueens.Core/            # Business logic and game services
-│   ├── Models/
-│   │   ├── CellState.cs
-│   │   └── GameResult.cs
-│   ├── Services/
-│   │   ├── BoardGenerator.cs
-│   │   ├── GameState.cs
-│   │   └── GameHistory.cs
-│   └── InfiniteQueens.Core.csproj
-├── InfiniteQueens.Tests/           # xUnit test project (38 tests)
-│   ├── BoardGeneratorTests.cs
-│   ├── GameStateTests.cs
-│   ├── GameHistoryTests.cs
-│   └── InfiniteQueens.Tests.csproj
-├── InfiniteQueens.slnx             # Solution file
-└── README.md
-```
+- No two queens are diagonally adjacent
+- Exactly one queen per colored region
 
 ## Features
 
-- **Multiple board sizes**: 4x4 through 10x10
-- **Timed mode**: Optional timer and game history leaderboard
-- **Auto-marking**: Automatically mark invalid squares when placing queens
-- **URL parameters**: Bookmark specific board sizes (`?size=8`)
-- **Three-state cells**: Click to cycle through empty → mark (✕) → queen (♛)
-- **Board validation**: Only generates solvable puzzles
-- **Game history**: Track completion times with medals for top 3 per board size
+- **Multiple board sizes**: Play on boards from 4×4 to 10×10
+- **Timed challenges**: Track your completion times and compete with yourself
+- **Smart assistance**: Automatically marks invalid squares as you place queens
+- **Game history**: Review your past games with medals for your best times
+- **Progressive difficulty**: Larger boards create more complex puzzles
 
-## Running the Game
+## How to Play
+
+1. Choose your board size (4×4 to 10×10)
+2. Click a cell to place a queen (♛)
+3. Click again to mark a cell as blocked (✕)
+4. Click once more to clear the cell
+5. Complete the board by satisfying all placement rules
+
+## Development
+
+Built with .NET 10.0 and Blazor WebAssembly.
+
+### Running Locally
 
 ```bash
 cd InfiniteQueens\InfiniteQueens.Web
 dotnet run
 ```
 
-Then navigate to http://localhost:5030 (or the port shown in console).
-
-## Running Tests
+### Running Tests
 
 ```bash
 cd InfiniteQueens\InfiniteQueens.Tests
 dotnet test
 ```
-
-All 38 tests validate:
-- Board generation (region creation, connectivity, solvability)
-- Game state management (conflicts, win detection)
-- Game history tracking (sorting, game numbering)
-
-## Building the Solution
-
-```bash
-cd InfiniteQueens
-dotnet build
-```
-
-## Technical Details
-
-- **Framework**: .NET 10.0
-- **Platform**: Blazor WebAssembly (runs entirely client-side)
-- **Testing**: xUnit with comprehensive coverage
-- **Architecture**: Clean separation of concerns (UI, Core logic, Tests)
