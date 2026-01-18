@@ -332,7 +332,10 @@ p {
     }
     
     .history-pane {
-        display: none !important;
+        position: static;
+        margin: 40px auto 20px;
+        width: 100%;
+        max-width: 400px;
     }
     
     h1 {
