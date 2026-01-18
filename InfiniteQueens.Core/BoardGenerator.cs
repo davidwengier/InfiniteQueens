@@ -89,13 +89,22 @@ public class BoardGenerator
     public bool IsSolvable(int[,] regions, int boardSize)
     {
         var testBoard = new bool[boardSize, boardSize];
-        return SolveBacktrack(0, testBoard, regions, boardSize);
+        int solutionCount = 0;
+        CountSolutions(0, testBoard, regions, boardSize, ref solutionCount);
+        return solutionCount == 1;
     }
 
-    private bool SolveBacktrack(int region, bool[,] testBoard, int[,] regions, int boardSize)
+    private void CountSolutions(int region, bool[,] testBoard, int[,] regions, int boardSize, ref int solutionCount)
     {
         if (region == boardSize)
-            return true;
+        {
+            solutionCount++;
+            return;
+        }
+
+        // Early exit if we already found more than one solution
+        if (solutionCount > 1)
+            return;
 
         // Find all cells in this region
         var cells = new List<(int row, int col)>();
@@ -116,13 +125,14 @@ public class BoardGenerator
 
             testBoard[row, col] = true;
 
-            if (SolveBacktrack(region + 1, testBoard, regions, boardSize))
-                return true;
+            CountSolutions(region + 1, testBoard, regions, boardSize, ref solutionCount);
 
             testBoard[row, col] = false;
-        }
 
-        return false;
+            // Early exit if we already found more than one solution
+            if (solutionCount > 1)
+                return;
+        }
     }
 
     private bool CanPlaceQueen(int row, int col, bool[,] testBoard, int boardSize)
