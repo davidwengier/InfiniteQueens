@@ -1,0 +1,52 @@
+@using InfiniteQueens.Models
+
+@if (ShowHistory && HasHistory)
+{
+    <div class="history-pane">
+        <h3>@(BoardSize)x@(BoardSize) Game History</h3>
+        <div class="history-list">
+            @foreach (var (game, index) in History.Select((g, i) => (g, i)))
+            {
+                <div class="history-item">
+                    @if (index == 0)
+                    {
+                        <span class="medal">🥇</span>
+                    }
+                    else if (index == 1)
+                    {
+                        <span class="medal">🥈</span>
+                    }
+                    else if (index == 2)
+                    {
+                        <span class="medal">🥉</span>
+                    }
+                    else
+                    {
+                        <span class="medal"></span>
+                    }
+                    <span class="game-num">Game #@game.GameNumber</span>
+                    <span class="game-time">@FormatTime(game.Time)</span>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool ShowHistory { get; set; }
+    
+    [Parameter]
+    public bool HasHistory { get; set; }
+    
+    [Parameter]
+    public int BoardSize { get; set; }
+    
+    [Parameter]
+    public IEnumerable<GameResult> History { get; set; } = Enumerable.Empty<GameResult>();
+    
+    private string FormatTime(TimeSpan time)
+    {
+        return time.ToString(@"mm\:ss");
+    }
+}

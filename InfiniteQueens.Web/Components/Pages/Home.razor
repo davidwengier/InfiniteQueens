@@ -14,37 +14,11 @@
 <PageTitle>Infinite Queens</PageTitle>
 
 <div class="game-container">
-    @if (timedMode && GameHistory.HasHistory(boardSize))
-    {
-        <div class="history-pane">
-            <h3>@(boardSize)x@(boardSize) Game History</h3>
-            <div class="history-list">
-                @foreach (var (game, index) in GameHistory.GetHistory(boardSize).Select((g, i) => (g, i)))
-                {
-                    <div class="history-item">
-                        @if (index == 0)
-                        {
-                            <span class="medal">🥇</span>
-                        }
-                        else if (index == 1)
-                        {
-                            <span class="medal">🥈</span>
-                        }
-                        else if (index == 2)
-                        {
-                            <span class="medal">🥉</span>
-                        }
-                        else
-                        {
-                            <span class="medal"></span>
-                        }
-                        <span class="game-num">Game #@game.GameNumber</span>
-                        <span class="game-time">@FormatTime(game.Time)</span>
-                    </div>
-                }
-            </div>
-        </div>
-    }
+    <HistoryPane 
+        ShowHistory="@timedMode" 
+        HasHistory="@GameHistory.HasHistory(boardSize)"
+        BoardSize="@boardSize"
+        History="@GameHistory.GetHistory(boardSize)" />
     
     <h1>Infinite Queens</h1>
     <p>Place one queen in each coloured region. No two queens can share a row, column, or be diagonally adjacent.</p>
