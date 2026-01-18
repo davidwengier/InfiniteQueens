@@ -14,12 +14,6 @@
 <PageTitle>Infinite Queens</PageTitle>
 
 <div class="game-container">
-    <HistoryPane 
-        ShowHistory="@timedMode" 
-        HasHistory="@GameHistory.HasHistory(boardSize)"
-        BoardSize="@boardSize"
-        History="@GameHistory.GetHistory(boardSize)" />
-    
     <h1>Infinite Queens</h1>
     <p>Place one queen in each coloured region. No two queens can share a row, column, or be diagonally adjacent.</p>
     <p style="font-size: 14px; color: #888;">Click once for ✕ (mark), twice for ♛ (queen), three times to clear.</p>
@@ -66,6 +60,12 @@
             IsChecked="@timedMode"
             OnToggle="@ToggleTimedMode" />
     </div>
+
+    <HistoryPane 
+        ShowHistory="@timedMode" 
+        HasHistory="@GameHistory.HasHistory(boardSize)"
+        BoardSize="@boardSize"
+        History="@GameHistory.GetHistory(boardSize)" />
 
     <WinOverlay 
         IsVisible="@(gameState.CheckWin() || isGameWon)"
