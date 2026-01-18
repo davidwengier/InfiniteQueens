@@ -27,16 +27,14 @@ public class UserInteractionTests
         Assert.Equal(CellState.Empty, gameState.GetCell(row, col));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void DragOperation_PlacesMarksOnly(string pointerType)
+    [Fact]
+    public void DragOperation_PlacesMarksOnly()
     {
         // Arrange
         var gameState = new GameState(4);
         var cells = new[] { (0, 0), (0, 1), (0, 2) };
         
-        // Act - Simulate dragging across cells (works for both mouse and touch)
+        // Act - Simulate dragging across cells
         foreach (var (row, col) in cells)
         {
             if (gameState.GetCell(row, col) == CellState.Empty)
@@ -52,16 +50,14 @@ public class UserInteractionTests
         }
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void DragOperation_DoesNotOverwriteQueens(string pointerType)
+    [Fact]
+    public void DragOperation_DoesNotOverwriteQueens()
     {
         // Arrange
         var gameState = new GameState(4);
         gameState.SetCell(1, 1, CellState.Queen);
         
-        // Act - Try to drag over a queen (works for both mouse and touch)
+        // Act - Try to drag over a queen
         var cellState = gameState.GetCell(1, 1);
         if (cellState == CellState.Empty)
         {
@@ -72,16 +68,14 @@ public class UserInteractionTests
         Assert.Equal(CellState.Queen, gameState.GetCell(1, 1));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void DragOperation_DoesNotOverwriteExistingMarks(string pointerType)
+    [Fact]
+    public void DragOperation_DoesNotOverwriteExistingMarks()
     {
         // Arrange
         var gameState = new GameState(4);
         gameState.SetCell(2, 2, CellState.ManualCross);
         
-        // Act - Try to drag over existing mark (works for both mouse and touch)
+        // Act - Try to drag over existing mark
         var cellState = gameState.GetCell(2, 2);
         if (cellState == CellState.Empty)
         {
@@ -131,14 +125,11 @@ public class UserInteractionTests
         // Not: Empty -> Queen (which was the bug)
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void AfterDrag_ClickOnSameCellCyclesNormally(string pointerType)
+    [Fact]
+    public void AfterDrag_ClickOnSameCellCyclesNormally()
     {
         // Regression test: After dragging to create X's, clicking on the 
         // cell where drag started should cycle normally (X -> Queen -> Empty)
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         int row = 0, col = 0;
         
@@ -157,13 +148,10 @@ public class UserInteractionTests
         // Should NOT require multiple clicks or place multiple X's
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void DragThenClick_WorksOnDifferentCell(string pointerType)
+    [Fact]
+    public void DragThenClick_WorksOnDifferentCell()
     {
         // After dragging across cells, clicking on a different cell should work normally
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         
         // Simulate drag: mark cells (0,0) and (0,1)
@@ -180,13 +168,10 @@ public class UserInteractionTests
         Assert.Equal(CellState.Queen, gameState.GetCell(1, 1));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void PointerDown_InitiatesDragMode(string pointerType)
+    [Fact]
+    public void PointerDown_InitiatesDragMode()
     {
         // Test that pointer down sets up drag tracking
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         int startRow = 0, startCol = 0;
         
@@ -195,13 +180,10 @@ public class UserInteractionTests
         Assert.Equal(CellState.Empty, gameState.GetCell(startRow, startCol));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void PointerMove_AcrossCells_PlacesMarks(string pointerType)
+    [Fact]
+    public void PointerMove_AcrossCells_PlacesMarks()
     {
         // Simulate dragging across multiple cells
-        // Works for both mouse (via pointerenter) and touch (via pointermove)
         var gameState = new GameState(4);
         var dragPath = new[] { (0, 0), (0, 1), (0, 2), (1, 2) };
         
@@ -221,13 +203,10 @@ public class UserInteractionTests
         }
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void PointerUp_EndsDragMode(string pointerType)
+    [Fact]
+    public void PointerUp_EndsDragMode()
     {
         // After pointer up, the next pointer down should start a fresh drag
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         
         // First drag
@@ -246,13 +225,10 @@ public class UserInteractionTests
         Assert.Equal(CellState.ManualCross, gameState.GetCell(1, 1));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void DragBackOverSameCell_DoesNotDuplicateMark(string pointerType)
+    [Fact]
+    public void DragBackOverSameCell_DoesNotDuplicateMark()
     {
         // When dragging back and forth, cells should not get multiple marks
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         
         // Simulate dragging: (0,0) -> (0,1) -> (0,0) again
@@ -270,14 +246,11 @@ public class UserInteractionTests
         Assert.Equal(CellState.ManualCross, gameState.GetCell(0, 0));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void AfterDrag_ClickOnMarkedCell_ShouldPlaceQueen(string pointerType)
+    [Fact]
+    public void AfterDrag_ClickOnMarkedCell_ShouldPlaceQueen()
     {
         // This tests the bug where after dragging, the first click is consumed
         // and doesn't actually toggle the cell
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         var draggedCells = new HashSet<(int, int)>();
         
@@ -310,13 +283,10 @@ public class UserInteractionTests
         Assert.Equal(CellState.Queen, gameState.GetCell(0, 0));
     }
     
-    [Theory]
-    [InlineData("mouse")]
-    [InlineData("touch")]
-    public void AfterDrag_ClickOnUnmarkedCell_ShouldPlaceMark(string pointerType)
+    [Fact]
+    public void AfterDrag_ClickOnUnmarkedCell_ShouldPlaceMark()
     {
         // After dragging, clicking on a different empty cell should place a mark
-        // Works for both mouse and touch pointer types
         var gameState = new GameState(4);
         var draggedCells = new HashSet<(int, int)>();
         
