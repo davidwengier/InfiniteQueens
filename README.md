@@ -2,6 +2,8 @@
 
 A minimalistic puzzle game where you place queens on a board following classic chess rules with a colorful twist.
 
+## ▶️ [**Play Now**](https://wengier.com/InfiniteQueens/) ◀️
+
 ## Game Rules
 
 Place one queen in each colored region such that:
