@@ -462,6 +462,7 @@
         /* Scale board to fit screen for larger sizes */
         width: min(calc(var(--board-size) * 50px + var(--board-size) * 2px + 6px), calc(100vw - 40px));
         margin: 20px auto;
+        max-width: 100%;
     }
 
     .cell {
@@ -486,21 +487,25 @@
     @@media (max-width: 600px) {
         .game-container {
             padding: 10px;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
         }
         
         .history-pane {
-            display: none;
+            display: none !important;
         }
         
         .board {
-            /* Constrain board width on mobile */
-            width: min(calc(100vw - 20px), 420px);
-            margin: 0 auto;
+            /* Constrain board width on mobile - account for 10px padding on each side */
+            width: calc(100vw - 20px);
+            max-width: calc(100vw - 20px);
+            margin: 10px auto;
         }
         
         .cell {
             /* Font size scales with available space on mobile */
-            font-size: calc((min(calc(100vw - 20px), 420px) - var(--board-size) * 2px - 6px) / var(--board-size) * 0.64);
+            font-size: calc((calc(100vw - 20px) - var(--board-size) * 2px - 6px) / var(--board-size) * 0.64);
         }
         
         .toggles-container {
