@@ -5,6 +5,7 @@ A minimalistic puzzle game where you place queens on a board following classic c
 ## Game Rules
 
 Place one queen in each colored region such that:
+
 - No two queens share the same row
 - No two queens share the same column
 - No two queens are diagonally adjacent
@@ -21,8 +22,8 @@ Place one queen in each colored region such that:
 ## How to Play
 
 1. Choose your board size (4×4 to 10×10)
-2. Click a cell to place a queen (♛)
-3. Click again to mark a cell as blocked (✕)
+2. Click a cell to mark a cell as blocked (✕)
+3. Click again to place a queen (♛)
 4. Click once more to clear the cell
 5. Complete the board by satisfying all placement rules
 

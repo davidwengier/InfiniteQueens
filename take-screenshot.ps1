@@ -25,6 +25,17 @@ if ($Device -and $devices.ContainsKey($Device)) {
     Write-Host "Using $Device preset: ${Width}x${Height}"
 }
 
+# Ensure screenshots directory exists
+$screenshotsDir = "screenshots"
+if (-not (Test-Path $screenshotsDir)) {
+    New-Item -ItemType Directory -Path $screenshotsDir | Out-Null
+}
+
+# Prepend screenshots directory to output path if not already included
+if (-not $OutputFile.StartsWith($screenshotsDir)) {
+    $OutputFile = Join-Path $screenshotsDir $OutputFile
+}
+
 # Run the screenshot tool
 dotnet run --project InfiniteQueens.Screenshots\InfiniteQueens.Screenshots.csproj -- $Url $OutputFile $Width $Height
 
