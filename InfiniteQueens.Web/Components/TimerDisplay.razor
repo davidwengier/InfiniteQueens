@@ -1,0 +1,16 @@
+@if (ShowTimer)
+{
+    <div class="timer-display">
+        ⏱️ @FormattedTime
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool ShowTimer { get; set; }
+    
+    [Parameter]
+    public TimeSpan ElapsedTime { get; set; }
+    
+    private string FormattedTime => ElapsedTime.ToString(@"mm\:ss");
+}

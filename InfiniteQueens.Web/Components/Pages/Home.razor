@@ -25,12 +25,7 @@
     <p style="font-size: 14px; color: #888;">Click once for ✕ (mark), twice for ♛ (queen), three times to clear.</p>
     
     <div class="controls">
-        @if (timedMode)
-        {
-            <div class="timer-display">
-                ⏱️ @FormatTime(elapsedTime)
-            </div>
-        }
+        <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
         <div class="size-buttons">
             @for (int size = 4; size <= 10; size++)
             {
