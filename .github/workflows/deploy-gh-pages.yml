@@ -21,7 +21,13 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore InfiniteQueens.Web/InfiniteQueens.csproj
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
 
       - name: Publish
         run: dotnet publish InfiniteQueens.Web/InfiniteQueens.csproj -c Release -o release --nologo
