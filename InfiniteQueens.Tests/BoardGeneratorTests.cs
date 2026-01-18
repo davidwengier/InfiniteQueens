@@ -79,8 +79,8 @@ public class BoardGeneratorTests
     [InlineData(6)]
     public void IsSolvable_ShouldReturnTrueForValidBoard(int boardSize)
     {
-        // Arrange
-        int maxAttempts = 50;
+        // Arrange - Easy mode has ~50% success rate, so need more attempts
+        int maxAttempts = 100;
         bool foundSolvable = false;
 
         // Act - Try generating boards until we find a solvable one

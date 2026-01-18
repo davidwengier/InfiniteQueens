@@ -89,7 +89,74 @@ public class BoardGenerator
     public bool IsSolvable(int[,] regions, int boardSize)
     {
         var testBoard = new bool[boardSize, boardSize];
-        return SolveBacktrack(0, testBoard, regions, boardSize);
+        if (!SolveBacktrack(0, testBoard, regions, boardSize))
+            return false;
+
+        // Check constraint density to ensure easier puzzles
+        // Use board-size adjusted threshold (smaller boards naturally have higher density)
+        double constraintDensity = CalculateConstraintDensity(regions, boardSize);
+        double threshold = boardSize switch
+        {
+            4 => 0.5,      // 4x4 boards have naturally higher density
+            6 => 0.45,     // 6x6 slightly lower
+            _ => 0.4       // 8x8 and larger can be more selective
+        };
+        
+        return constraintDensity < threshold;
+    }
+
+    private double CalculateConstraintDensity(int[,] regions, int boardSize)
+    {
+        // Calculate how constrained each region is by other regions
+        // Higher value = more intersecting constraints = harder puzzle
+        
+        int totalConstraints = 0;
+        int totalPossibleConstraints = 0;
+
+        for (int regionId = 0; regionId < boardSize; regionId++)
+        {
+            // Get all cells in this region
+            var regionCells = new List<(int row, int col)>();
+            for (int r = 0; r < boardSize; r++)
+            {
+                for (int c = 0; c < boardSize; c++)
+                {
+                    if (regions[r, c] == regionId)
+                        regionCells.Add((r, c));
+                }
+            }
+
+            // For each cell in this region, count conflicts with other regions
+            foreach (var (row, col) in regionCells)
+            {
+                int conflictCount = 0;
+                
+                // Count cells in OTHER regions that would conflict with this placement
+                for (int r = 0; r < boardSize; r++)
+                {
+                    for (int c = 0; c < boardSize; c++)
+                    {
+                        if (regions[r, c] == regionId)
+                            continue;
+
+                        // Check if this cell conflicts (same row, col, or adjacent diagonal)
+                        if (r == row || c == col || 
+                            (Math.Abs(r - row) == 1 && Math.Abs(c - col) == 1))
+                        {
+                            conflictCount++;
+                        }
+                    }
+                }
+
+                totalConstraints += conflictCount;
+                totalPossibleConstraints += boardSize * boardSize - regionCells.Count;
+            }
+        }
+
+        // Return normalized constraint density (0.0 to 1.0)
+        return totalPossibleConstraints > 0 
+            ? (double)totalConstraints / totalPossibleConstraints 
+            : 0.0;
     }
 
     private bool SolveBacktrack(int region, bool[,] testBoard, int[,] regions, int boardSize)
