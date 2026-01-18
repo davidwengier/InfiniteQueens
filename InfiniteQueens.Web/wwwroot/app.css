@@ -334,8 +334,11 @@ p {
     .history-pane {
         position: static;
         margin: 40px auto 20px;
-        width: 100%;
+        width: calc(100% - 40px);
         max-width: 400px;
+        left: auto;
+        top: auto;
+        box-sizing: border-box;
     }
     
     h1 {
