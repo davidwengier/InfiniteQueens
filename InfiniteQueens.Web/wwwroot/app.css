@@ -383,11 +383,6 @@ p {
     animation: shake 0.3s;
 }
 
-.cell:hover {
-    filter: brightness(1.1);
-    transform: scale(1.05);
-}
-
 .queen {
     user-select: none;
     filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
