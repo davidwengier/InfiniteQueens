@@ -1,7 +1,11 @@
 @using InfiniteQueens.Models
 @using InfiniteQueens.Services
+@using Microsoft.AspNetCore.Components.Web
 
-<div class="board" style="grid-template-columns: repeat(@BoardSize, 1fr); --board-size: @BoardSize; @(IsHidden ? "display: none;" : "")">
+<div class="board" 
+     style="grid-template-columns: repeat(@BoardSize, 1fr); --board-size: @BoardSize; @(IsHidden ? "display: none;" : "")"
+     @onpointermove="HandleBoardPointerMove"
+     @onpointermove:preventDefault="true">
     @for (int row = 0; row < BoardSize; row++)
     {
         @for (int col = 0; col < BoardSize; col++)
@@ -14,12 +18,12 @@
             var hasConflict = GameState.HasConflict(row, col);
             
             <div class="cell region-@region @(hasConflict ? "conflict" : "")"
+                 data-row="@r"
+                 data-col="@c"
                  @onclick="() => OnCellClick.InvokeAsync((r, c))"
                  @onpointerdown="(e) => OnCellPointerDown.InvokeAsync((e, r, c))"
                  @onpointerdown:preventDefault="true"
                  @onpointerenter="() => OnCellPointerEnter.InvokeAsync((r, c))"
-                 @onpointermove="(e) => OnCellPointerMove.InvokeAsync((e, r, c))"
-                 @onpointermove:preventDefault="true"
                  @onpointerup="OnCellPointerUp"
                  @onpointercancel="OnCellPointerUp"
                  @oncontextmenu:preventDefault="true">
@@ -56,8 +60,13 @@
     public EventCallback<(int row, int col)> OnCellPointerEnter { get; set; }
     
     [Parameter]
-    public EventCallback<(PointerEventArgs e, int row, int col)> OnCellPointerMove { get; set; }
+    public EventCallback<PointerEventArgs> OnBoardPointerMove { get; set; }
     
     [Parameter]
     public EventCallback OnCellPointerUp { get; set; }
+    
+    private async Task HandleBoardPointerMove(PointerEventArgs e)
+    {
+        await OnBoardPointerMove.InvokeAsync(e);
+    }
 }

@@ -51,7 +51,7 @@
         OnCellClick="@((coords) => ToggleQueen(coords.row, coords.col))"
         OnCellPointerDown="@((args) => HandleCellPointerDown(args.e, args.row, args.col))"
         OnCellPointerEnter="@((coords) => HandleCellPointerEnter(coords.row, coords.col))"
-        OnCellPointerMove="@((args) => HandleCellPointerMove(args.e, args.row, args.col))"
+        OnBoardPointerMove="@HandleBoardPointerMove"
         OnCellPointerUp="@HandleCellPointerUp" />
 
     <div class="toggles-container">
@@ -488,13 +488,31 @@
         }
     }
     
-    private void HandleCellPointerMove(PointerEventArgs e, int row, int col)
+    private async Task HandleBoardPointerMove(PointerEventArgs e)
     {
-        // For touch devices, pointermove events are used instead of pointerenter
-        // This ensures dragging works on mobile/touch devices
+        // For touch devices, we need to use the board-level pointermove to track dragging
         if (e.PointerType == "touch" && pointerIsDown && !isGameWon)
         {
-            HandleCellPointerEnter(row, col);
+            try
+            {
+                // Use JS to find which cell element is under the pointer
+                var result = await JSRuntime.InvokeAsync<int[]>("getCellAtPoint", e.ClientX, e.ClientY);
+                if (result != null && result.Length == 2)
+                {
+                    int row = result[0];
+                    int col = result[1];
+                    
+                    // Only mark if we haven't marked this cell yet during this drag
+                    if (draggedCells.Add((row, col)))
+                    {
+                        PlaceMarkIfEmpty(row, col);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors - pointer might be outside the board
+            }
         }
     }
     

@@ -40,6 +40,28 @@
 
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="version-check.js"></script>
+    <script>
+        window.getCellAtPoint = function(x, y) {
+            // Find the element at the given point
+            var element = document.elementFromPoint(x, y);
+            
+            // Walk up the DOM tree to find a cell element
+            while (element && !element.classList.contains('cell')) {
+                element = element.parentElement;
+            }
+            
+            // If we found a cell, get its row and col attributes
+            if (element && element.classList.contains('cell')) {
+                var row = parseInt(element.getAttribute('data-row'));
+                var col = parseInt(element.getAttribute('data-col'));
+                if (!isNaN(row) && !isNaN(col)) {
+                    return [row, col];
+                }
+            }
+            
+            return null;
+        };
+    </script>
 </body>
 
 </html>
