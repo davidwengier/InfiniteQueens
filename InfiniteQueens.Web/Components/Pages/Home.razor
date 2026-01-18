@@ -92,6 +92,7 @@
     private bool pointerIsDown = false;
     private (int row, int col)? pointerDownCell = null;
     private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
+    private bool wasDragging = false; // Track if we actually dragged vs just tapped
 
     protected override void OnInitialized()
     {
@@ -329,9 +330,9 @@
             return;
             
         // If we just finished a drag, ignore this click and clear the flag
-        if (draggedCells.Count > 0)
+        if (wasDragging)
         {
-            draggedCells.Clear();
+            wasDragging = false;
             StateHasChanged(); // Force UI update after clearing drag state
             return;
         }
@@ -484,6 +485,7 @@
         // Only mark if we haven't marked this cell yet during this drag
         if (draggedCells.Add((row, col)))
         {
+            wasDragging = true; // We're now dragging across cells
             PlaceMarkIfEmpty(row, col);
         }
     }
@@ -505,6 +507,7 @@
                     // Only mark if we haven't marked this cell yet during this drag
                     if (draggedCells.Add((row, col)))
                     {
+                        wasDragging = true; // We're now dragging across cells
                         PlaceMarkIfEmpty(row, col);
                     }
                 }
@@ -520,7 +523,7 @@
     {
         pointerIsDown = false;
         pointerDownCell = null;
-        // Don't clear draggedCells here - it's used in ToggleQueen to detect drag
+        draggedCells.Clear(); // Clear drag state so next click isn't consumed
     }
     
     private void PlaceMarkIfEmpty(int row, int col)

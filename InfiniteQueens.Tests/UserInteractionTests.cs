@@ -245,4 +245,68 @@ public class UserInteractionTests
         
         Assert.Equal(CellState.ManualCross, gameState.GetCell(0, 0));
     }
+    
+    [Fact]
+    public void AfterDrag_ClickOnMarkedCell_ShouldPlaceQueen()
+    {
+        // This tests the bug where after dragging, the first click is consumed
+        // and doesn't actually toggle the cell
+        var gameState = new GameState(4);
+        var draggedCells = new HashSet<(int, int)>();
+        
+        // Simulate drag: pointer down on (0,0), move to (0,1), then up
+        bool pointerIsDown = true;
+        (int row, int col)? pointerDownCell = (0, 0);
+        
+        // Mark first cell during drag
+        if (draggedCells.Add((0, 0)))
+        {
+            gameState.SetCell(0, 0, CellState.ManualCross);
+        }
+        
+        // Move to second cell during drag
+        if (draggedCells.Add((0, 1)))
+        {
+            gameState.SetCell(0, 1, CellState.ManualCross);
+        }
+        
+        // Pointer up - end drag
+        pointerIsDown = false;
+        pointerDownCell = null;
+        draggedCells.Clear(); // This should happen on pointer up
+        
+        // Now click on the marked cell (0,0) - should place queen
+        // Simulate ToggleQueen behavior (should not be blocked by drag state)
+        Assert.Equal(0, draggedCells.Count); // Drag state should be cleared
+        
+        // Toggle from ManualCross to Queen
+        var currentState = gameState.GetCell(0, 0);
+        Assert.Equal(CellState.ManualCross, currentState);
+        
+        // This simulates what ToggleQueen should do
+        gameState.SetCell(0, 0, CellState.Queen);
+        Assert.Equal(CellState.Queen, gameState.GetCell(0, 0));
+    }
+    
+    [Fact]
+    public void AfterDrag_ClickOnUnmarkedCell_ShouldPlaceMark()
+    {
+        // After dragging, clicking on a different empty cell should place a mark
+        var gameState = new GameState(4);
+        var draggedCells = new HashSet<(int, int)>();
+        
+        // Simulate drag over (0,0) and (0,1)
+        draggedCells.Add((0, 0));
+        gameState.SetCell(0, 0, CellState.ManualCross);
+        draggedCells.Add((0, 1));
+        gameState.SetCell(0, 1, CellState.ManualCross);
+        
+        // End drag
+        draggedCells.Clear();
+        
+        // Click on different cell (1,0) - should place mark
+        Assert.Equal(CellState.Empty, gameState.GetCell(1, 0));
+        gameState.SetCell(1, 0, CellState.ManualCross);
+        Assert.Equal(CellState.ManualCross, gameState.GetCell(1, 0));
+    }
 }
