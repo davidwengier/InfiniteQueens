@@ -90,21 +90,16 @@
     </div>
 
     <div class="toggles-container">
-        <label class="toggle-label" @onclick="ToggleAutoMark" @onclick:preventDefault="true">
-            <span>Auto-mark invalid squares</span>
-            <div class="toggle-switch">
-                <input type="checkbox" checked="@autoMarkInvalid" disabled="@isGenerating" />
-                <span class="toggle-slider"></span>
-            </div>
-        </label>
+        <ToggleSwitch 
+            Label="Auto-mark invalid squares"
+            IsChecked="@autoMarkInvalid"
+            Disabled="@isGenerating"
+            OnToggle="@ToggleAutoMark" />
         
-        <label class="toggle-label" @onclick="ToggleTimedMode" @onclick:preventDefault="true">
-            <span>Timed games</span>
-            <div class="toggle-switch">
-                <input type="checkbox" checked="@timedMode" />
-                <span class="toggle-slider"></span>
-            </div>
-        </label>
+        <ToggleSwitch 
+            Label="Timed games"
+            IsChecked="@timedMode"
+            OnToggle="@ToggleTimedMode" />
     </div>
 
     <WinOverlay 
