@@ -158,6 +158,69 @@ public class MobileInteractionTests : IAsyncLifetime
         await context.CloseAsync();
     }
 
+    [Fact]
+    public async Task AfterDrag_NextClick_ShouldWork()
+    {
+        // Skip if the app isn't running
+        if (!await IsAppRunning())
+        {
+            return;
+        }
+
+        var context = await _browser!.NewContextAsync(new()
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 },
+            IsMobile = false,
+            HasTouch = false
+        });
+
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(BaseUrl, new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForTimeoutAsync(2000);
+
+        var cells = page.Locator(".cell");
+        await cells.First.WaitForAsync();
+
+        // Drag across first three cells in the first row
+        var firstCell = cells.Nth(0);
+        var secondCell = cells.Nth(1);
+        var thirdCell = cells.Nth(2);
+        var fourthCell = cells.Nth(3);
+
+        // Perform drag operation
+        await firstCell.HoverAsync();
+        await page.Mouse.DownAsync();
+        await secondCell.HoverAsync();
+        await page.WaitForTimeoutAsync(50);
+        await thirdCell.HoverAsync();
+        await page.WaitForTimeoutAsync(50);
+        await page.Mouse.UpAsync();
+        await page.WaitForTimeoutAsync(100);
+
+        // Verify drag placed crosses
+        Assert.True(await firstCell.Locator(".cross").CountAsync() > 0);
+        Assert.True(await secondCell.Locator(".cross").CountAsync() > 0);
+        Assert.True(await thirdCell.Locator(".cross").CountAsync() > 0);
+
+        // Now click on the fourth cell - this should work immediately
+        await fourthCell.ClickAsync();
+        await page.WaitForTimeoutAsync(100);
+
+        // Verify the click worked (placed a cross)
+        var hasCross = await fourthCell.Locator(".cross").CountAsync() > 0;
+        Assert.True(hasCross, "Click after drag should work immediately and place a cross");
+
+        // Click again to place a queen
+        await fourthCell.ClickAsync();
+        await page.WaitForTimeoutAsync(100);
+
+        // Verify queen was placed
+        var hasQueen = await fourthCell.Locator(".queen").CountAsync() > 0;
+        Assert.True(hasQueen, "Second click should place a queen");
+
+        await context.CloseAsync();
+    }
+
     private async Task<bool> IsAppRunning()
     {
         try

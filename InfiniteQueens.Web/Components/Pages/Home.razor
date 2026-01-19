@@ -540,7 +540,8 @@
     {
         pointerIsDown = false;
         pointerDownCell = null;
-        draggedCells.Clear(); // Clear drag state so next click isn't consumed
+        draggedCells.Clear();
+        wasDragging = false; // Clear drag flag so next click works immediately
     }
     
     private void PlaceMarkIfEmpty(int row, int col)
