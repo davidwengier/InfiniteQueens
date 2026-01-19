@@ -28,62 +28,74 @@ public class BoardGenerator
             }
         }
 
-        // Expand regions using randomized growth for more organic shapes
-        var unassignedCount = boardSize * boardSize - seeds.Count;
+        // Random frontier with directional bias for winding, organic shapes
         int[] dr = { -1, 1, 0, 0 };
         int[] dc = { 0, 0, -1, 1 };
-
-        while (unassignedCount > 0)
+        
+        // Track frontier with direction history for momentum
+        var frontier = new List<(int row, int col, int region, int lastDir)>();
+        
+        // Initialize frontier with neighbors of all seeds
+        for (int i = 0; i < seeds.Count; i++)
         {
-            // Pick a random region to expand from
-            int regionToExpand = _random.Next(boardSize);
-            
-            // Find all boundary cells for this region
-            var boundaryCells = new List<(int row, int col)>();
-            for (int r = 0; r < boardSize; r++)
+            var (r, c) = seeds[i];
+            for (int d = 0; d < 4; d++)
             {
-                for (int c = 0; c < boardSize; c++)
+                int newR = r + dr[d];
+                int newC = c + dc[d];
+                if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
                 {
-                    if (regions[r, c] == regionToExpand && assigned[r, c])
-                    {
-                        // Check if this cell has unassigned neighbors
-                        for (int i = 0; i < 4; i++)
-                        {
-                            int newR = r + dr[i];
-                            int newC = c + dc[i];
-                            if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
-                            {
-                                boundaryCells.Add((r, c));
-                                break;
-                            }
-                        }
-                    }
+                    frontier.Add((newR, newC, i, d));
                 }
             }
-
-            if (boundaryCells.Count > 0)
+        }
+        
+        // Process frontier with directional preference
+        while (frontier.Count > 0)
+        {
+            // Heavily bias toward cells that continue in same direction (80% of time)
+            int idx;
+            if (_random.NextDouble() < 0.8 && frontier.Count > 1)
             {
-                // Pick a random boundary cell
-                var (row, col) = boundaryCells[_random.Next(boundaryCells.Count)];
-                
-                // Find unassigned neighbors and pick one randomly
-                var unassignedNeighbors = new List<(int r, int c)>();
-                for (int i = 0; i < 4; i++)
+                // Find cells that would continue straight - create winding paths
+                var continuingStraight = new List<int>();
+                for (int i = 0; i < Math.Min(frontier.Count, 10); i++)
                 {
-                    int newR = row + dr[i];
-                    int newC = col + dc[i];
-                    if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
+                    int testIdx = _random.Next(frontier.Count);
+                    var (testR, testC, testReg, testDir) = frontier[testIdx];
+                    // Check if continuing in same direction from parent
+                    int checkR = testR + dr[testDir];
+                    int checkC = testC + dc[testDir];
+                    if (checkR >= 0 && checkR < boardSize && checkC >= 0 && checkC < boardSize && !assigned[checkR, checkC])
                     {
-                        unassignedNeighbors.Add((newR, newC));
+                        continuingStraight.Add(testIdx);
                     }
                 }
-                
-                if (unassignedNeighbors.Count > 0)
+                idx = continuingStraight.Count > 0 ? continuingStraight[_random.Next(continuingStraight.Count)] : _random.Next(frontier.Count);
+            }
+            else
+            {
+                idx = _random.Next(frontier.Count);
+            }
+            
+            var (row, col, region, lastDir) = frontier[idx];
+            frontier.RemoveAt(idx);
+            
+            // Skip if already assigned
+            if (assigned[row, col]) continue;
+            
+            // Assign this cell
+            regions[row, col] = region;
+            assigned[row, col] = true;
+            
+            // Add neighbors with direction info
+            for (int i = 0; i < 4; i++)
+            {
+                int newR = row + dr[i];
+                int newC = col + dc[i];
+                if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
                 {
-                    var (newR, newC) = unassignedNeighbors[_random.Next(unassignedNeighbors.Count)];
-                    regions[newR, newC] = regionToExpand;
-                    assigned[newR, newC] = true;
-                    unassignedCount--;
+                    frontier.Add((newR, newC, region, i));
                 }
             }
         }
@@ -124,13 +136,13 @@ public class BoardGenerator
         if (!SolveBacktrack(0, testBoard, regions, boardSize))
             return false;
 
-        // Check constraint density - lower thresholds = harder puzzles
+        // Check constraint density - much lower thresholds for harder puzzles
         double constraintDensity = CalculateConstraintDensity(regions, boardSize);
         double threshold = boardSize switch
         {
-            5 => 0.42,     // 5x5 boards - harder than before
-            6 => 0.38,     // 6x6 harder
-            _ => 0.35      // 8x8 and larger - more challenging
+            5 => 0.38,     // 5x5 boards - significantly harder
+            6 => 0.34,     // 6x6 much harder
+            _ => 0.30      // 8x8 and larger - very challenging
         };
         
         return constraintDensity < threshold;
