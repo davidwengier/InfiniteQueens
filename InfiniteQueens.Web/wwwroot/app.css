@@ -344,12 +344,12 @@ p {
     }
     
     .size-buttons {
-        gap: 4px;
+        gap: 3px;
     }
     
     .size-btn {
-        padding: 5px 8px;
-        font-size: 13px;
+        padding: 5px 7px;
+        font-size: 12px;
         flex: 1;
         min-width: 0;
     }
