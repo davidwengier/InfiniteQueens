@@ -28,30 +28,62 @@ public class BoardGenerator
             }
         }
 
-        // Expand regions using flood-fill from seeds
-        var queue = new Queue<(int row, int col, int region)>();
-        foreach (var (seed, index) in seeds.Select((s, i) => (s, i)))
-        {
-            queue.Enqueue((seed.row, seed.col, index));
-        }
-
+        // Expand regions using randomized growth for more organic shapes
+        var unassignedCount = boardSize * boardSize - seeds.Count;
         int[] dr = { -1, 1, 0, 0 };
         int[] dc = { 0, 0, -1, 1 };
 
-        while (queue.Count > 0)
+        while (unassignedCount > 0)
         {
-            var (row, col, region) = queue.Dequeue();
-
-            // Try to expand to ALL adjacent unassigned cells
-            for (int i = 0; i < 4; i++)
+            // Pick a random region to expand from
+            int regionToExpand = _random.Next(boardSize);
+            
+            // Find all boundary cells for this region
+            var boundaryCells = new List<(int row, int col)>();
+            for (int r = 0; r < boardSize; r++)
             {
-                int newR = row + dr[i];
-                int newC = col + dc[i];
-                if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
+                for (int c = 0; c < boardSize; c++)
                 {
-                    regions[newR, newC] = region;
+                    if (regions[r, c] == regionToExpand && assigned[r, c])
+                    {
+                        // Check if this cell has unassigned neighbors
+                        for (int i = 0; i < 4; i++)
+                        {
+                            int newR = r + dr[i];
+                            int newC = c + dc[i];
+                            if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
+                            {
+                                boundaryCells.Add((r, c));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (boundaryCells.Count > 0)
+            {
+                // Pick a random boundary cell
+                var (row, col) = boundaryCells[_random.Next(boundaryCells.Count)];
+                
+                // Find unassigned neighbors and pick one randomly
+                var unassignedNeighbors = new List<(int r, int c)>();
+                for (int i = 0; i < 4; i++)
+                {
+                    int newR = row + dr[i];
+                    int newC = col + dc[i];
+                    if (newR >= 0 && newR < boardSize && newC >= 0 && newC < boardSize && !assigned[newR, newC])
+                    {
+                        unassignedNeighbors.Add((newR, newC));
+                    }
+                }
+                
+                if (unassignedNeighbors.Count > 0)
+                {
+                    var (newR, newC) = unassignedNeighbors[_random.Next(unassignedNeighbors.Count)];
+                    regions[newR, newC] = regionToExpand;
                     assigned[newR, newC] = true;
-                    queue.Enqueue((newR, newC, region));
+                    unassignedCount--;
                 }
             }
         }
@@ -92,14 +124,13 @@ public class BoardGenerator
         if (!SolveBacktrack(0, testBoard, regions, boardSize))
             return false;
 
-        // Check constraint density to ensure easier puzzles
-        // Use board-size adjusted threshold (smaller boards naturally have higher density)
+        // Check constraint density - lower thresholds = harder puzzles
         double constraintDensity = CalculateConstraintDensity(regions, boardSize);
         double threshold = boardSize switch
         {
-            5 => 0.5,      // 5x5 boards have higher density
-            6 => 0.45,     // 6x6 slightly lower
-            _ => 0.4       // 8x8 and larger can be more selective
+            5 => 0.42,     // 5x5 boards - harder than before
+            6 => 0.38,     // 6x6 harder
+            _ => 0.35      // 8x8 and larger - more challenging
         };
         
         return constraintDensity < threshold;
