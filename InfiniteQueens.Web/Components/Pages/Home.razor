@@ -126,6 +126,7 @@
     private string? currentBoardHash = null;
     private GameResult? previousGameWithSameBoard = null;
     private int? currentSeed = null;
+    private bool isLoadingFromUrlSeed = false; // Track if current seed is from URL parameter
     private DotNetObjectReference<Home>? dotNetHelper;
 
     protected override void OnInitialized()
@@ -149,6 +150,7 @@
         if (!string.IsNullOrEmpty(seedParam) && int.TryParse(seedParam, out int seed))
         {
             currentSeed = seed;
+            isLoadingFromUrlSeed = true; // Mark that we're loading from URL
         }
         
         gameState = new GameState(boardSize);
@@ -302,8 +304,9 @@
             await Task.Delay(100);
         }
 
-        // Check if we're loading from a URL seed parameter
-        bool loadingFromUrlSeed = currentSeed.HasValue;
+        // Check if we're loading from a URL seed parameter (only true on first load)
+        bool loadingFromUrlSeed = isLoadingFromUrlSeed;
+        isLoadingFromUrlSeed = false; // Clear flag after checking
         
         // Increment game counter for this board size (unless loading from URL seed)
         if (!loadingFromUrlSeed)
@@ -318,9 +321,9 @@
         int? usedSeed = null;
         
         // If we have a seed from URL, use it directly
-        if (loadingFromUrlSeed)
+        if (loadingFromUrlSeed && currentSeed.HasValue)
         {
-            int seedValue = currentSeed!.Value; // Already checked loadingFromUrlSeed
+            int seedValue = currentSeed.Value;
             usedSeed = seedValue;
             await Task.Run(async () =>
             {
@@ -342,9 +345,6 @@
                     StateHasChanged();
                 });
             });
-            
-            // Clear the seed so next "New Game" generates a random board
-            currentSeed = null;
         }
         else
         {
