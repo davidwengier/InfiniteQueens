@@ -180,7 +180,8 @@
         // Only add to game history if in timed mode
         if (timedMode)
         {
-            GameHistory.AddResult(boardSize, currentGameNumber, completionTime.Value);
+            string boardHash = gameState.GetBoardHash();
+            GameHistory.AddResult(boardSize, currentGameNumber, completionTime.Value, boardHash);
         }
     }
 

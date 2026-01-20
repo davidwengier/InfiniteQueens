@@ -13,6 +13,11 @@ public class GameState
     public CellState[,] Board => _board;
     public bool[,] AutoMarks => _autoMarks;
     public int[,] Regions => _regions;
+    
+    public string GetBoardHash()
+    {
+        return BoardHasher.GetRotationInvariantHash(_regions);
+    }
 
     public GameState(int boardSize)
     {
