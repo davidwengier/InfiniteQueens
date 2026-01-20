@@ -302,8 +302,11 @@
             await Task.Delay(100);
         }
 
-        // Increment game counter for this board size (unless loading from seed)
-        if (!currentSeed.HasValue)
+        // Check if we're loading from a URL seed parameter
+        bool loadingFromUrlSeed = currentSeed.HasValue;
+        
+        // Increment game counter for this board size (unless loading from URL seed)
+        if (!loadingFromUrlSeed)
         {
             currentGameNumber = GameHistory.GetNextGameNumber(boardSize);
         }
@@ -312,22 +315,24 @@
         currentAttempt = 0;
         
         bool foundValid = false;
-        int? usedSeed = currentSeed;
+        int? usedSeed = null;
         
         // If we have a seed from URL, use it directly
-        if (currentSeed.HasValue)
+        if (loadingFromUrlSeed)
         {
+            int seedValue = currentSeed!.Value; // Already checked loadingFromUrlSeed
+            usedSeed = seedValue;
             await Task.Run(async () =>
             {
                 await InvokeAsync(() =>
                 {
-                    AddLog($"Loading board from seed {currentSeed.Value}...");
+                    AddLog($"Loading board from seed {seedValue}...");
                     StateHasChanged();
                 });
                 
                 await Task.Delay(20);
                 
-                var regions = BoardGenerator.GenerateRegions(boardSize, currentSeed.Value);
+                var regions = BoardGenerator.GenerateRegions(boardSize, seedValue);
                 
                 await InvokeAsync(() =>
                 {
@@ -343,7 +348,7 @@
         }
         else
         {
-            // Generate a random seed for a new game
+            // Generate a random seed for a new game - always fresh each time
             usedSeed = new Random().Next();
             
             await Task.Run(async () =>
@@ -413,7 +418,8 @@
 
         isGenerating = false;
         
-        // Store the seed that was used
+        // Store the seed for display and saving (but NOT for reuse next game)
+        // We use a separate variable to track the currently displayed seed
         currentSeed = usedSeed;
         
         // Calculate and store the board hash for the new game
