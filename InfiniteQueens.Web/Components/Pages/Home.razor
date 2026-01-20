@@ -35,6 +35,12 @@
     @if (!isGenerating && currentGameNumber > 0)
     {
         <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
+        @if (!string.IsNullOrEmpty(currentBoardHash))
+        {
+            <div style="font-size: 14px; color: #888; margin-top: 5px;">
+                Board ID: <span style="font-family: monospace; color: #2196F3;">@currentBoardHash</span>
+            </div>
+        }
         <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
     }
 
