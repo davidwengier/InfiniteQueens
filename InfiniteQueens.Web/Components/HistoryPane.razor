@@ -26,6 +26,10 @@
                     }
                     <span class="game-num">Game #@game.GameNumber</span>
                     <span class="game-time">@FormatTime(game.Time)</span>
+                    @if (!string.IsNullOrEmpty(game.BoardHash))
+                    {
+                        <span class="game-hash" title="Board ID: @game.BoardHash">@game.BoardHash</span>
+                    }
                 </div>
             }
         </div>

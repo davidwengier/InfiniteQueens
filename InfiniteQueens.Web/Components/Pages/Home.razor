@@ -71,6 +71,8 @@
         IsVisible="@(gameState.CheckWin() || isGameWon)"
         ShowTime="@timedMode"
         CompletionTime="@(completionTime.HasValue ? completionTime : elapsedTime)"
+        BoardHash="@currentBoardHash"
+        PreviousGame="@previousGameWithSameBoard"
         OnClose="@CloseWinOverlay"
         OnNewGame="@StartNewGame" />
 </div>
@@ -93,6 +95,8 @@
     private (int row, int col)? pointerDownCell = null;
     private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
     private bool wasDragging = false; // Track if we actually dragged vs just tapped
+    private string? currentBoardHash = null;
+    private GameResult? previousGameWithSameBoard = null;
     private DotNetObjectReference<Home>? dotNetHelper;
 
     protected override void OnInitialized()
@@ -181,6 +185,10 @@
         if (timedMode)
         {
             string boardHash = gameState.GetBoardHash();
+            
+            // Check if this board was played before
+            previousGameWithSameBoard = GameHistory.FindPreviousGameByHash(boardSize, boardHash);
+            
             GameHistory.AddResult(boardSize, currentGameNumber, completionTime.Value, boardHash);
         }
     }
@@ -327,6 +335,11 @@
         });
 
         isGenerating = false;
+        
+        // Calculate and store the board hash for the new game
+        currentBoardHash = gameState.GetBoardHash();
+        previousGameWithSameBoard = null; // Reset for new game
+        
         StateHasChanged();
         
         // Start the timer after board is generated

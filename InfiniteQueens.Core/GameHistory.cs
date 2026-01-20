@@ -44,4 +44,12 @@ public class GameHistory
             BoardHash = boardHash
         });
     }
+    
+    public GameResult? FindPreviousGameByHash(int boardSize, string boardHash)
+    {
+        if (!_history.ContainsKey(boardSize))
+            return null;
+            
+        return _history[boardSize].FirstOrDefault(g => g.BoardHash == boardHash);
+    }
 }

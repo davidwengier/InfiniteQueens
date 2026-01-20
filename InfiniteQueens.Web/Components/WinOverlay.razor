@@ -1,3 +1,5 @@
+@using InfiniteQueens.Models
+
 @if (IsVisible)
 {
     <div class="win-overlay" @onclick="OnClose">
@@ -7,6 +9,21 @@
             @if (ShowTime && CompletionTime.HasValue)
             {
                 <span style="font-size: 18px; display: block; text-align: center; margin-top: 10px;">Solved in @FormatTime(CompletionTime.Value)!</span>
+            }
+            @if (!string.IsNullOrEmpty(BoardHash))
+            {
+                <div style="font-size: 14px; color: #888; margin-top: 10px;">
+                    Board ID: <span style="font-family: monospace; color: #2196F3;">@BoardHash</span>
+                </div>
+            }
+            @if (PreviousGame != null)
+            {
+                <div style="font-size: 14px; color: #ff9800; margin-top: 8px; font-weight: bold;">
+                    ⚠️ You've played this board before!<br />
+                    <span style="font-weight: normal; font-size: 13px;">
+                        Previous: Game #@PreviousGame.GameNumber in @FormatTime(PreviousGame.Time)
+                    </span>
+                </div>
             }
             <button class="new-game-btn" @onclick="OnNewGame">New Game</button>
         </div>
@@ -22,6 +39,12 @@
     
     [Parameter]
     public TimeSpan? CompletionTime { get; set; }
+    
+    [Parameter]
+    public string? BoardHash { get; set; }
+    
+    [Parameter]
+    public GameResult? PreviousGame { get; set; }
     
     [Parameter]
     public EventCallback OnClose { get; set; }
