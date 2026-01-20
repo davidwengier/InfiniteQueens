@@ -14,9 +14,25 @@
 <PageTitle>Infinite Queens</PageTitle>
 
 <div class="game-container">
-    <h1>Infinite Queens</h1>
-    <p>Place one queen in each coloured region. No two queens can share a row, column, or be diagonally adjacent.</p>
-    <p style="font-size: 14px; color: #888;">Click once for ✕ (mark), twice for ♛ (queen), three times to clear.</p>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <h1 style="margin: 0;">Infinite Queens</h1>
+        <div class="help-button" tabindex="0">
+            <span class="help-icon">?</span>
+            <div class="help-tooltip">
+                <strong>How to Play:</strong><br/>
+                Place one queen in each coloured region.<br/>
+                <br/>
+                <strong>Rules:</strong><br/>
+                • No two queens in same row or column<br/>
+                • No diagonally adjacent queens<br/>
+                <br/>
+                <strong>Controls:</strong><br/>
+                Click once: ✕ (mark)<br/>
+                Click twice: ♛ (queen)<br/>
+                Click three times: clear
+            </div>
+        </div>
+    </div>
     
     <div class="controls">
         <SizeSelector 
