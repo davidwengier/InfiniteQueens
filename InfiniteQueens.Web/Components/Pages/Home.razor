@@ -35,10 +35,16 @@
     @if (!isGenerating && currentGameNumber > 0)
     {
         <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
-        @if (!string.IsNullOrEmpty(currentBoardHash))
+        @if (currentSeed.HasValue)
         {
             <div style="font-size: 14px; color: #888; margin-top: 5px;">
-                Board ID: <span style="font-family: monospace; color: #2196F3;">@currentBoardHash</span>
+                Seed: <span style="font-family: monospace; color: #2196F3;">@currentSeed.Value</span>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(currentBoardHash))
+        {
+            <div style="font-size: 12px; color: #aaa; margin-top: 3px;">
+                Hash: <span style="font-family: monospace;">@currentBoardHash</span>
             </div>
         }
         <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
@@ -103,14 +109,16 @@
     private bool wasDragging = false; // Track if we actually dragged vs just tapped
     private string? currentBoardHash = null;
     private GameResult? previousGameWithSameBoard = null;
+    private int? currentSeed = null;
     private DotNetObjectReference<Home>? dotNetHelper;
 
     protected override void OnInitialized()
     {
-        // Read board size from URL parameter
+        // Read board size and seed from URL parameters
         var uri = new Uri(NavigationManager.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         var sizeParam = query["size"];
+        var seedParam = query["seed"];
         var testWin = query["testWin"];
         
         if (!string.IsNullOrEmpty(sizeParam) && int.TryParse(sizeParam, out int size))
@@ -119,6 +127,12 @@
             {
                 boardSize = size;
             }
+        }
+        
+        // Check if a seed is specified
+        if (!string.IsNullOrEmpty(seedParam) && int.TryParse(seedParam, out int seed))
+        {
+            currentSeed = seed;
         }
         
         gameState = new GameState(boardSize);
@@ -188,14 +202,14 @@
         isGameWon = true;
         
         // Only add to game history if in timed mode
-        if (timedMode)
+        if (timedMode && currentSeed.HasValue)
         {
             string boardHash = gameState.GetBoardHash();
             
             // Check if this board was played before
             previousGameWithSameBoard = GameHistory.FindPreviousGameByHash(boardSize, boardHash);
             
-            GameHistory.AddResult(boardSize, currentGameNumber, completionTime.Value, boardHash);
+            GameHistory.AddResult(boardSize, currentGameNumber, completionTime.Value, boardHash, currentSeed.Value);
         }
     }
 
@@ -272,75 +286,119 @@
             await Task.Delay(100);
         }
 
-        // Increment game counter for this board size
-        currentGameNumber = GameHistory.GetNextGameNumber(boardSize);
+        // Increment game counter for this board size (unless loading from seed)
+        if (!currentSeed.HasValue)
+        {
+            currentGameNumber = GameHistory.GetNextGameNumber(boardSize);
+        }
 
         generationLog.Clear();
         currentAttempt = 0;
         
         bool foundValid = false;
+        int? usedSeed = currentSeed;
         
-        await Task.Run(async () =>
+        // If we have a seed from URL, use it directly
+        if (currentSeed.HasValue)
         {
-            int maxAttempts = boardSize >= 10 ? 50 : 100;
-            
-            for (int attempts = 0; attempts < maxAttempts; attempts++)
-            {
-                int attemptNum = attempts + 1;
-                currentAttempt = attemptNum;
-                
-                await InvokeAsync(() =>
-                {
-                    AddLog($"Attempt {attemptNum}: Generating regions...");
-                    StateHasChanged();
-                });
-                
-                await Task.Delay(20); // Small delay for UI update
-                
-                var regions = BoardGenerator.GenerateRegions(boardSize);
-                
-                await InvokeAsync(() =>
-                {
-                    AddLog($"Attempt {attemptNum}: Validating...");
-                    StateHasChanged();
-                });
-                
-                await Task.Delay(20); // Small delay for UI update
-                
-                if (BoardGenerator.IsSolvable(regions, boardSize))
-                {
-                    await InvokeAsync(() =>
-                    {
-                        gameState.SetRegions(regions);
-                        AddLog($"✓ Attempt {attemptNum}: Valid board found!");
-                        foundValid = true;
-                        StateHasChanged();
-                    });
-                    break;
-                }
-                else
-                {
-                    await InvokeAsync(() =>
-                    {
-                        AddLog($"✗ Attempt {attemptNum}: Unsolvable");
-                        StateHasChanged();
-                    });
-                }
-                
-                await Task.Delay(20); // Small delay between attempts
-            }
-            
-            if (!foundValid)
+            await Task.Run(async () =>
             {
                 await InvokeAsync(() =>
                 {
-                    AddLog($"⚠ Using best attempt after {currentAttempt} tries");
+                    AddLog($"Loading board from seed {currentSeed.Value}...");
                     StateHasChanged();
                 });
-            }
-        });
+                
+                await Task.Delay(20);
+                
+                var regions = BoardGenerator.GenerateRegions(boardSize, currentSeed.Value);
+                
+                await InvokeAsync(() =>
+                {
+                    gameState.SetRegions(regions);
+                    AddLog($"✓ Board loaded!");
+                    foundValid = true;
+                    StateHasChanged();
+                });
+            });
+            
+            // Clear the seed so next "New Game" generates a random board
+            currentSeed = null;
+        }
+        else
+        {
+            // Generate a random seed for a new game
+            usedSeed = new Random().Next();
+            
+            await Task.Run(async () =>
+            {
+                int maxAttempts = boardSize >= 10 ? 50 : 100;
+                
+                for (int attempts = 0; attempts < maxAttempts; attempts++)
+                {
+                    int attemptNum = attempts + 1;
+                    currentAttempt = attemptNum;
+                    
+                    // Try different seeds until we find a solvable one
+                    int trySeed = usedSeed.Value + attempts;
+                    
+                    await InvokeAsync(() =>
+                    {
+                        AddLog($"Attempt {attemptNum}: Generating regions...");
+                        StateHasChanged();
+                    });
+                    
+                    await Task.Delay(20); // Small delay for UI update
+                    
+                    var regions = BoardGenerator.GenerateRegions(boardSize, trySeed);
+                    
+                    await InvokeAsync(() =>
+                    {
+                        AddLog($"Attempt {attemptNum}: Validating...");
+                        StateHasChanged();
+                    });
+                    
+                    await Task.Delay(20); // Small delay for UI update
+                    
+                    if (BoardGenerator.IsSolvable(regions, boardSize))
+                    {
+                        usedSeed = trySeed; // Store the successful seed
+                        await InvokeAsync(() =>
+                        {
+                            gameState.SetRegions(regions);
+                            AddLog($"✓ Attempt {attemptNum}: Valid board found!");
+                            foundValid = true;
+                            StateHasChanged();
+                        });
+                        break;
+                    }
+                    else
+                    {
+                        await InvokeAsync(() =>
+                        {
+                            AddLog($"✗ Attempt {attemptNum}: Unsolvable");
+                            StateHasChanged();
+                        });
+                    }
+                    
+                    await Task.Delay(20); // Small delay between attempts
+                }
+                
+                if (!foundValid)
+                {
+                    await InvokeAsync(() =>
+                    {
+                        AddLog($"⚠ Using best attempt after {currentAttempt} tries");
+                        StateHasChanged();
+                    });
+                }
+            });
+        }
 
         isGenerating = false;
+        
+        // Store the seed that was used
+        currentSeed = usedSeed;
         
         // Calculate and store the board hash for the new game
         currentBoardHash = gameState.GetBoardHash();

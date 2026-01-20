@@ -2,10 +2,10 @@ namespace InfiniteQueens.Services;
 
 public class BoardGenerator
 {
-    private readonly Random _random = new();
-
-    public int[,] GenerateRegions(int boardSize)
+    public int[,] GenerateRegions(int boardSize, int? seed = null)
     {
+        var random = seed.HasValue ? new Random(seed.Value) : new Random();
+        
         var regions = new int[boardSize, boardSize];
         var assigned = new bool[boardSize, boardSize];
         
@@ -18,8 +18,8 @@ public class BoardGenerator
         var seeds = new List<(int row, int col)>();
         while (seeds.Count < boardSize)
         {
-            int r = _random.Next(boardSize);
-            int c = _random.Next(boardSize);
+            int r = random.Next(boardSize);
+            int c = random.Next(boardSize);
             if (!assigned[r, c])
             {
                 seeds.Add((r, c));
@@ -55,13 +55,13 @@ public class BoardGenerator
         {
             // Heavily bias toward cells that continue in same direction (80% of time)
             int idx;
-            if (_random.NextDouble() < 0.8 && frontier.Count > 1)
+            if (random.NextDouble() < 0.8 && frontier.Count > 1)
             {
                 // Find cells that would continue straight - create winding paths
                 var continuingStraight = new List<int>();
                 for (int i = 0; i < Math.Min(frontier.Count, 10); i++)
                 {
-                    int testIdx = _random.Next(frontier.Count);
+                    int testIdx = random.Next(frontier.Count);
                     var (testR, testC, testReg, testDir) = frontier[testIdx];
                     // Check if continuing in same direction from parent
                     int checkR = testR + dr[testDir];
@@ -71,11 +71,11 @@ public class BoardGenerator
                         continuingStraight.Add(testIdx);
                     }
                 }
-                idx = continuingStraight.Count > 0 ? continuingStraight[_random.Next(continuingStraight.Count)] : _random.Next(frontier.Count);
+                idx = continuingStraight.Count > 0 ? continuingStraight[random.Next(continuingStraight.Count)] : random.Next(frontier.Count);
             }
             else
             {
-                idx = _random.Next(frontier.Count);
+                idx = random.Next(frontier.Count);
             }
             
             var (row, col, region, lastDir) = frontier[idx];

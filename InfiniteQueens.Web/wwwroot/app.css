@@ -67,7 +67,7 @@ body {
     font-family: monospace;
 }
 
-.game-hash {
+.game-seed {
     grid-column: 2 / 4;
     font-family: monospace;
     font-size: 11px;
@@ -76,6 +76,14 @@ body {
     background: #e3f2fd;
     border-radius: 3px;
     text-align: left;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+}
+
+.game-seed:hover {
+    background: #bbdefb;
+    text-decoration: underline;
 }
     padding: 20px;
     font-family: Arial, sans-serif;

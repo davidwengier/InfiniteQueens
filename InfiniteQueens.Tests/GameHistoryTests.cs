@@ -22,7 +22,7 @@ public class GameHistoryTests
         var history = new GameHistory();
 
         // Act
-        history.AddResult(6, 1, TimeSpan.FromMinutes(5), "ABC123DEF456");
+        history.AddResult(6, 1, TimeSpan.FromMinutes(5), "ABC123DEF456", 12345);
 
         // Assert
         Assert.True(history.HasHistory(6));
@@ -50,9 +50,9 @@ public class GameHistoryTests
     {
         // Arrange
         var history = new GameHistory();
-        history.AddResult(6, 1, TimeSpan.FromMinutes(10), "HASH1");
-        history.AddResult(6, 2, TimeSpan.FromMinutes(3), "HASH2");
-        history.AddResult(6, 3, TimeSpan.FromMinutes(7), "HASH3");
+        history.AddResult(6, 1, TimeSpan.FromMinutes(10), "HASH1", 1);
+        history.AddResult(6, 2, TimeSpan.FromMinutes(3), "HASH2", 2);
+        history.AddResult(6, 3, TimeSpan.FromMinutes(7), "HASH3", 3);
 
         // Act
         var results = history.GetHistory(6);
@@ -120,9 +120,9 @@ public class GameHistoryTests
         var history = new GameHistory();
         
         // Act
-        history.AddResult(4, 1, TimeSpan.FromMinutes(2), "HASH4");
-        history.AddResult(6, 1, TimeSpan.FromMinutes(5), "HASH6");
-        history.AddResult(4, 2, TimeSpan.FromMinutes(3), "HASH4B");
+        history.AddResult(4, 1, TimeSpan.FromMinutes(2), "HASH4", 4);
+        history.AddResult(6, 1, TimeSpan.FromMinutes(5), "HASH6", 6);
+        history.AddResult(4, 2, TimeSpan.FromMinutes(3), "HASH4B", 42);
 
         // Assert
         var size4History = history.GetHistory(4);
@@ -140,9 +140,9 @@ public class GameHistoryTests
         var time = TimeSpan.FromMinutes(5);
 
         // Act
-        history.AddResult(6, 1, time, "HASH_A");
-        history.AddResult(6, 2, time, "HASH_B");
-        history.AddResult(6, 3, time, "HASH_C");
+        history.AddResult(6, 1, time, "HASH_A", 100);
+        history.AddResult(6, 2, time, "HASH_B", 200);
+        history.AddResult(6, 3, time, "HASH_C", 300);
 
         // Assert
         var results = history.GetHistory(6);
@@ -157,9 +157,9 @@ public class GameHistoryTests
         var history = new GameHistory();
         
         // Act - Add out of order
-        history.AddResult(6, 5, TimeSpan.FromMinutes(10), "HASH5");
-        history.AddResult(6, 2, TimeSpan.FromMinutes(3), "HASH2");
-        history.AddResult(6, 8, TimeSpan.FromMinutes(7), "HASH8");
+        history.AddResult(6, 5, TimeSpan.FromMinutes(10), "HASH5", 5);
+        history.AddResult(6, 2, TimeSpan.FromMinutes(3), "HASH2", 2);
+        history.AddResult(6, 8, TimeSpan.FromMinutes(7), "HASH8", 8);
 
         // Assert - Should be sorted by time but preserve original game numbers
         var results = history.GetHistory(6);

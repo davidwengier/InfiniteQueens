@@ -30,7 +30,7 @@ public class GameHistory
         return _gameCounters[boardSize];
     }
 
-    public void AddResult(int boardSize, int gameNumber, TimeSpan time, string boardHash)
+    public void AddResult(int boardSize, int gameNumber, TimeSpan time, string boardHash, int seed)
     {
         if (!_history.ContainsKey(boardSize))
         {
@@ -41,7 +41,8 @@ public class GameHistory
         {
             GameNumber = gameNumber,
             Time = time,
-            BoardHash = boardHash
+            BoardHash = boardHash,
+            Seed = seed
         });
     }
     
