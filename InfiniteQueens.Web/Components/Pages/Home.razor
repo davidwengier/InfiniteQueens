@@ -139,6 +139,7 @@
     private (int row, int col)? pointerDownCell = null;
     private HashSet<(int row, int col)> draggedCells = new HashSet<(int, int)>();
     private bool wasDragging = false; // Track if we actually dragged vs just tapped
+    private (int row, int col)? ignoredClickCell = null; // Cell to ignore next click on
     private string? currentBoardHash = null;
     private GameResult? previousGameWithSameBoard = null;
     private int? currentSeed = null;
@@ -463,17 +464,17 @@
 
     private void ToggleQueen(int row, int col)
     {
-        // Ignore clicks if game is won or if we just did a drag operation
+        // Ignore clicks if game is won
         if (isGameWon)
             return;
             
-        // If we just finished a drag, ignore this click and clear the flag
-        if (wasDragging)
+        // If this cell should be ignored (from a drag-within-cell gesture)
+        if (ignoredClickCell.HasValue && ignoredClickCell.Value == (row, col))
         {
-            wasDragging = false;
-            StateHasChanged(); // Force UI update after clearing drag state
+            ignoredClickCell = null;
             return;
         }
+        ignoredClickCell = null; // Clear for any other cell click
             
         var oldState = gameState.GetCell(row, col);
         bool wasAutoMark = gameState.GetAutoMark(row, col);
@@ -659,11 +660,17 @@
     
     private void HandleCellPointerUp()
     {
+        // If we were dragging within the same cell (touch move within one cell),
+        // we need to ignore the click event that will follow
+        if (wasDragging && pointerDownCell.HasValue && draggedCells.Count == 1 && draggedCells.Contains(pointerDownCell.Value))
+        {
+            ignoredClickCell = pointerDownCell.Value;
+        }
+        
         pointerIsDown = false;
         pointerDownCell = null;
         draggedCells.Clear();
-        // Don't clear wasDragging here - let ToggleQueen check and clear it
-        // This ensures that if we were dragging, the subsequent click is ignored
+        wasDragging = false;
     }
     
     private void PlaceMarkIfEmpty(int row, int col)

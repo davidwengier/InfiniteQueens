@@ -279,6 +279,38 @@ public class MobileInteractionTests : IAsyncLifetime
         await context.CloseAsync();
     }
 
+    [Fact]
+    public async Task ShareLink_ShouldOnlyContainUrl()
+    {
+        // Skip if the app isn't running
+        if (!await IsAppRunning())
+        {
+            return;
+        }
+
+        var context = await _browser!.NewContextAsync(new()
+        {
+            ViewportSize = new ViewportSize { Width = 375, Height = 667 },
+            IsMobile = true,
+            HasTouch = true
+        });
+
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(BaseUrl, new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForTimeoutAsync(2000);
+
+        // Verify the shareLink function doesn't include 'text' parameter
+        var shareLinkCode = await page.EvaluateAsync<string>("window.shareLink.toString()");
+        
+        // The function should NOT contain 'text:' parameter
+        Assert.DoesNotContain("text:", shareLinkCode);
+        
+        // The function should contain 'url:' parameter
+        Assert.Contains("url:", shareLinkCode);
+
+        await context.CloseAsync();
+    }
+
     private async Task<bool> IsAppRunning()
     {
         try
