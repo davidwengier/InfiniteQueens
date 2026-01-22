@@ -65,6 +65,20 @@
         }
         <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
     }
+    else if (!isGenerating && currentGameNumber == 0 && currentSeed.HasValue)
+    {
+        <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Shared Game</h2>
+        <div style="font-size: 14px; color: #888; margin-top: 5px;">
+            Seed: <span style="font-family: monospace; color: #2196F3;">@currentSeed.Value</span>
+        </div>
+        @if (!string.IsNullOrEmpty(currentBoardHash))
+        {
+            <div style="font-size: 12px; color: #aaa; margin-top: 3px;">
+                Hash: <span style="font-family: monospace;">@currentBoardHash</span>
+            </div>
+        }
+        <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
+    }
 
     <GameBoard 
         BoardSize="@boardSize"
@@ -278,8 +292,8 @@
         boardSize = newSize;
         gameState = new GameState(boardSize);
         
-        // Update URL with new size
-        NavigationManager.NavigateTo($"?size={boardSize}", false);
+        // Update URL with new size (clear any seed since we're generating a new board)
+        NavigationManager.NavigateTo($"?size={boardSize}", replace: true);
         
         // Now show spinner and generate
         isGenerating = true;
@@ -312,6 +326,11 @@
         if (!loadingFromUrlSeed)
         {
             currentGameNumber = GameHistory.GetNextGameNumber(boardSize);
+        }
+        else
+        {
+            // For URL-seeded games, use 0 to indicate it's a shared/seed game
+            currentGameNumber = 0;
         }
 
         generationLog.Clear();

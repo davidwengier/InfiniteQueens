@@ -90,6 +90,22 @@
                 lastTouchEnd = now;
             }, { passive: false });
         };
+
+        // Open external links in system browser when running as PWA
+        window.openExternalLink = function(url) {
+            // Check if running as installed PWA (standalone mode)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+                || window.navigator.standalone 
+                || document.referrer.includes('android-app://');
+            
+            if (isStandalone) {
+                // Force open in system browser
+                window.open(url, '_blank', 'noopener,noreferrer');
+            } else {
+                // Normal browser - just navigate
+                window.open(url, '_blank');
+            }
+        };
     </script>
 </body>
 

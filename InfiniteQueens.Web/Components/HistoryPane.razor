@@ -1,5 +1,6 @@
 @using InfiniteQueens.Models
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @if (ShowHistory && HasHistory)
 {
@@ -29,7 +30,7 @@
                     <span class="game-time">@FormatTime(game.Time)</span>
                     @if (game.Seed.HasValue)
                     {
-                        <a href="@GetSeedUrl(game.Seed.Value)" target="_blank" class="game-seed" title="Open this board in new tab">
+                        <a href="@GetSeedUrl(game.Seed.Value)" @onclick="() => OpenSeedLink(game.Seed.Value)" @onclick:preventDefault class="game-seed" title="Open this board in new tab">
                             Seed: @game.Seed.Value
                         </a>
                     }
@@ -60,5 +61,11 @@
     private string GetSeedUrl(int seed)
     {
         return $"?size={BoardSize}&seed={seed}";
+    }
+    
+    private async Task OpenSeedLink(int seed)
+    {
+        var url = NavigationManager.ToAbsoluteUri(GetSeedUrl(seed)).ToString();
+        await JSRuntime.InvokeVoidAsync("openExternalLink", url);
     }
 }
