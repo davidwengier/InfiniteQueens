@@ -159,6 +159,64 @@ public class MobileInteractionTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task DragWithinSameCell_ShouldOnlyPlaceOneMark()
+    {
+        // Skip if the app isn't running
+        if (!await IsAppRunning())
+        {
+            return;
+        }
+
+        var context = await _browser!.NewContextAsync(new()
+        {
+            ViewportSize = new ViewportSize { Width = 375, Height = 667 },
+            DeviceScaleFactor = 2,
+            IsMobile = true,
+            HasTouch = true
+        });
+
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(BaseUrl, new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForTimeoutAsync(2000);
+
+        var cell = page.Locator(".cell").First;
+        await cell.WaitForAsync();
+
+        // Verify cell starts empty
+        var hasQueen = await cell.Locator(".queen").CountAsync() > 0;
+        var hasCross = await cell.Locator(".cross").CountAsync() > 0;
+        Assert.False(hasQueen);
+        Assert.False(hasCross);
+
+        // Get cell bounding box
+        var box = await cell.BoundingBoxAsync();
+        Assert.NotNull(box);
+
+        // Simulate a drag within the same cell using mouse (pointerdown, move, pointerup)
+        var centerX = box.X + box.Width / 2;
+        var centerY = box.Y + box.Height / 2;
+
+        // Pointer down at center, move slightly within cell, then up
+        await page.Mouse.MoveAsync(centerX, centerY);
+        await page.Mouse.DownAsync();
+        await page.WaitForTimeoutAsync(50);
+        // Move slightly but stay within the cell
+        await page.Mouse.MoveAsync(centerX + 5, centerY + 5);
+        await page.WaitForTimeoutAsync(50);
+        await page.Mouse.UpAsync();
+        await page.WaitForTimeoutAsync(100);
+
+        // After a drag within same cell, should have at most a cross (not a queen)
+        hasCross = await cell.Locator(".cross").CountAsync() > 0;
+        hasQueen = await cell.Locator(".queen").CountAsync() > 0;
+        
+        // Either nothing (if drag is ignored) or a cross, but NOT a queen
+        Assert.False(hasQueen, "Drag within same cell should NOT place a queen");
+
+        await context.CloseAsync();
+    }
+
+    [Fact]
     public async Task AfterDrag_NextClick_ShouldWork()
     {
         // Skip if the app isn't running

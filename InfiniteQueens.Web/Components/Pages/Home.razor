@@ -660,7 +660,8 @@
         pointerIsDown = false;
         pointerDownCell = null;
         draggedCells.Clear();
-        wasDragging = false; // Clear drag flag so next click works immediately
+        // Don't clear wasDragging here - let ToggleQueen check and clear it
+        // This ensures that if we were dragging, the subsequent click is ignored
     }
     
     private void PlaceMarkIfEmpty(int row, int col)
