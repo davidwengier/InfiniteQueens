@@ -73,21 +73,24 @@
                 dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
             });
             
-            // Prevent double-tap zoom on mobile (but not on interactive elements)
+            // Prevent double-tap zoom on mobile
             let lastTouchEnd = 0;
             document.addEventListener('touchend', function(e) {
                 const now = Date.now();
                 if (now - lastTouchEnd <= 300) {
-                    // Check if the touch target is inside the game board
-                    const target = e.target;
-                    const isGameCell = target.closest('.cell') !== null;
-                    
-                    // Only prevent zoom on non-interactive elements
-                    if (!isGameCell) {
-                        e.preventDefault();
-                    }
+                    e.preventDefault();
                 }
                 lastTouchEnd = now;
+            }, { passive: false });
+            
+            // Prevent scroll-into-view behavior on touch
+            document.addEventListener('touchstart', function(e) {
+                const target = e.target;
+                const isGameCell = target.closest('.cell') !== null;
+                const isBoard = target.closest('.board') !== null;
+                if (isGameCell || isBoard) {
+                    e.preventDefault();
+                }
             }, { passive: false });
         };
 
