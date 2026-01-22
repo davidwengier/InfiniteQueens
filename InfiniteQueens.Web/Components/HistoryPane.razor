@@ -4,40 +4,52 @@
 
 @if (ShowHistory && HasHistory)
 {
-    <div class="history-pane">
-        <h3>@(BoardSize)x@(BoardSize) Game History</h3>
-        <div class="history-list">
-            @foreach (var (game, index) in History.Select((g, i) => (g, i)))
-            {
-                <div class="history-item">
-                    @if (index == 0)
+    <button class="history-toggle-btn" @onclick="TogglePopup">
+        🏆 History
+    </button>
+    
+    @if (isPopupOpen)
+    {
+        <div class="history-overlay" @onclick="ClosePopup">
+            <div class="history-popup" @onclick:stopPropagation>
+                <div class="history-popup-header">
+                    <h3>@(BoardSize)x@(BoardSize) Game History</h3>
+                    <button class="history-close-btn" @onclick="ClosePopup">✕</button>
+                </div>
+                <div class="history-list">
+                    @foreach (var (game, index) in History.Select((g, i) => (g, i)))
                     {
-                        <span class="medal">🥇</span>
-                    }
-                    else if (index == 1)
-                    {
-                        <span class="medal">🥈</span>
-                    }
-                    else if (index == 2)
-                    {
-                        <span class="medal">🥉</span>
-                    }
-                    else
-                    {
-                        <span class="medal"></span>
-                    }
-                    <span class="game-num">Game #@game.GameNumber</span>
-                    <span class="game-time">@FormatTime(game.Time)</span>
-                    @if (game.Seed.HasValue)
-                    {
-                        <a href="@GetSeedUrl(game.Seed.Value)" @onclick="() => OpenSeedLink(game.Seed.Value)" @onclick:preventDefault class="game-seed" title="Open this board in new tab">
-                            Seed: @game.Seed.Value
-                        </a>
+                        <div class="history-item">
+                            @if (index == 0)
+                            {
+                                <span class="medal">🥇</span>
+                            }
+                            else if (index == 1)
+                            {
+                                <span class="medal">🥈</span>
+                            }
+                            else if (index == 2)
+                            {
+                                <span class="medal">🥉</span>
+                            }
+                            else
+                            {
+                                <span class="medal"></span>
+                            }
+                            <span class="game-num">Game #@game.GameNumber</span>
+                            <span class="game-time">@FormatTime(game.Time)</span>
+                            @if (game.Seed.HasValue)
+                            {
+                                <a href="@GetSeedUrl(game.Seed.Value)" @onclick="() => OpenSeedLink(game.Seed.Value)" @onclick:preventDefault class="game-seed" title="Open this board in new tab">
+                                    Seed: @game.Seed.Value
+                                </a>
+                            }
+                        </div>
                     }
                 </div>
-            }
+            </div>
         </div>
-    </div>
+    }
 }
 
 @code {
@@ -52,6 +64,18 @@
     
     [Parameter]
     public IEnumerable<GameResult> History { get; set; } = Enumerable.Empty<GameResult>();
+    
+    private bool isPopupOpen = false;
+    
+    private void TogglePopup()
+    {
+        isPopupOpen = !isPopupOpen;
+    }
+    
+    private void ClosePopup()
+    {
+        isPopupOpen = false;
+    }
     
     private string FormatTime(TimeSpan time)
     {

@@ -86,25 +86,6 @@
                 }
                 lastTouchEnd = now;
             }, { passive: false });
-            
-            // Prevent scroll-into-view by saving and restoring scroll position on touch
-            let savedScrollY = 0;
-            document.addEventListener('touchstart', function(e) {
-                const target = e.target;
-                const isBoard = target.closest('.board') !== null;
-                if (isBoard) {
-                    savedScrollY = window.scrollY;
-                }
-            }, { passive: true });
-            
-            document.addEventListener('touchend', function(e) {
-                const target = e.target;
-                const isBoard = target.closest('.board') !== null;
-                if (isBoard && window.scrollY !== savedScrollY) {
-                    // Restore scroll position if it changed during tap
-                    window.scrollTo(0, savedScrollY);
-                }
-            }, { passive: true });
         };
 
         // Open external links in system browser when running as PWA
