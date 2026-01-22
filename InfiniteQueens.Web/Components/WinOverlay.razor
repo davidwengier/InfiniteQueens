@@ -1,4 +1,6 @@
 @using InfiniteQueens.Models
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @if (IsVisible)
 {
@@ -15,6 +17,12 @@
                 <div style="font-size: 14px; color: #888; margin-top: 10px;">
                     Board ID: <span style="font-family: monospace; color: #2196F3;">@BoardHash</span>
                 </div>
+            }
+            @if (Seed.HasValue)
+            {
+                <button class="share-seed-btn" @onclick="ShareSeed">
+                    📤 Share this puzzle
+                </button>
             }
             @if (PreviousGame != null)
             {
@@ -44,6 +52,12 @@
     public string? BoardHash { get; set; }
     
     [Parameter]
+    public int? Seed { get; set; }
+    
+    [Parameter]
+    public int BoardSize { get; set; }
+    
+    [Parameter]
     public GameResult? PreviousGame { get; set; }
     
     [Parameter]
@@ -55,5 +69,14 @@
     private string FormatTime(TimeSpan time)
     {
         return time.ToString(@"mm\:ss");
+    }
+    
+    private async Task ShareSeed()
+    {
+        if (!Seed.HasValue) return;
+        
+        var url = NavigationManager.ToAbsoluteUri($"?size={BoardSize}&seed={Seed.Value}").ToString();
+        var title = $"Infinite Queens {BoardSize}x{BoardSize} Puzzle";
+        await JSRuntime.InvokeVoidAsync("shareLink", url, title);
     }
 }

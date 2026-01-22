@@ -114,6 +114,8 @@
         ShowTime="@timedMode"
         CompletionTime="@(completionTime.HasValue ? completionTime : elapsedTime)"
         BoardHash="@currentBoardHash"
+        Seed="@currentSeed"
+        BoardSize="@boardSize"
         PreviousGame="@previousGameWithSameBoard"
         OnClose="@CloseWinOverlay"
         OnNewGame="@StartNewGame" />

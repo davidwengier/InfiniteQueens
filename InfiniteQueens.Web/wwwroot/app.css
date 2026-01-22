@@ -601,19 +601,20 @@ p {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    padding-top: 20px;
     z-index: 1000;
     animation: fadeIn 0.5s;
 }
 
 .win-message {
     background: white;
-    padding: 40px 30px;
+    padding: 30px 25px;
     border-radius: 16px;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
     color: #2ecc71;
     animation: pulse 1s infinite;
@@ -621,6 +622,25 @@ p {
     text-align: center;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     max-width: 90%;
+}
+
+.share-seed-btn {
+    display: block;
+    margin: 15px auto 0;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2196F3;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.share-seed-btn:hover {
+    background: #bbdefb;
 }
 
 .new-game-btn {
