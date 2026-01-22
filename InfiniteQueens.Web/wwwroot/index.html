@@ -73,24 +73,18 @@
                 dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
             });
             
-            // Prevent double-tap zoom on mobile
+            // Prevent double-tap zoom on mobile but allow cell interaction
             let lastTouchEnd = 0;
             document.addEventListener('touchend', function(e) {
                 const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
+                const target = e.target;
+                const isGameCell = target.closest('.cell') !== null;
+                
+                // Prevent double-tap zoom everywhere except allow the second tap on cells
+                if (now - lastTouchEnd <= 300 && !isGameCell) {
                     e.preventDefault();
                 }
                 lastTouchEnd = now;
-            }, { passive: false });
-            
-            // Prevent scroll-into-view behavior on touch
-            document.addEventListener('touchstart', function(e) {
-                const target = e.target;
-                const isGameCell = target.closest('.cell') !== null;
-                const isBoard = target.closest('.board') !== null;
-                if (isGameCell || isBoard) {
-                    e.preventDefault();
-                }
             }, { passive: false });
         };
 
