@@ -73,19 +73,38 @@
                 dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
             });
             
-            // Prevent double-tap zoom on mobile but allow cell interaction
+            // Prevent double-tap zoom on mobile but allow cell taps
             let lastTouchEnd = 0;
             document.addEventListener('touchend', function(e) {
                 const now = Date.now();
                 const target = e.target;
                 const isGameCell = target.closest('.cell') !== null;
                 
-                // Prevent double-tap zoom everywhere except allow the second tap on cells
+                // Prevent double-tap zoom everywhere except on game cells
                 if (now - lastTouchEnd <= 300 && !isGameCell) {
                     e.preventDefault();
                 }
                 lastTouchEnd = now;
             }, { passive: false });
+            
+            // Prevent scroll-into-view by saving and restoring scroll position on touch
+            let savedScrollY = 0;
+            document.addEventListener('touchstart', function(e) {
+                const target = e.target;
+                const isBoard = target.closest('.board') !== null;
+                if (isBoard) {
+                    savedScrollY = window.scrollY;
+                }
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                const target = e.target;
+                const isBoard = target.closest('.board') !== null;
+                if (isBoard && window.scrollY !== savedScrollY) {
+                    // Restore scroll position if it changed during tap
+                    window.scrollTo(0, savedScrollY);
+                }
+            }, { passive: true });
         };
 
         // Open external links in system browser when running as PWA
