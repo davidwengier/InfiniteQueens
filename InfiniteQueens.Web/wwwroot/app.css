@@ -135,13 +135,14 @@ body {
     font-family: monospace;
     font-size: 11px;
     color: #2196F3;
-    padding: 2px 4px;
+    padding: 4px 8px;
     background: #e3f2fd;
     border-radius: 3px;
     text-align: left;
     text-decoration: none;
     display: block;
     cursor: pointer;
+    border: 1px solid #bbdefb;
 }
 
 .game-seed:hover {

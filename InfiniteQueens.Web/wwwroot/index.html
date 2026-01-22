@@ -88,21 +88,43 @@
             }, { passive: false });
         };
 
-        // Open external links in system browser when running as PWA
-        window.openExternalLink = function(url) {
-            // Check if running as installed PWA (standalone mode)
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-                || window.navigator.standalone 
-                || document.referrer.includes('android-app://');
-            
-            if (isStandalone) {
-                // Force open in system browser
-                window.open(url, '_blank', 'noopener,noreferrer');
+        // Share link using native share dialog, or copy to clipboard as fallback
+        window.shareLink = async function(url, title) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: 'Try this puzzle!',
+                        url: url
+                    });
+                } catch (err) {
+                    // User cancelled or share failed - ignore
+                    if (err.name !== 'AbortError') {
+                        // Fallback to clipboard
+                        await copyToClipboard(url);
+                    }
+                }
             } else {
-                // Normal browser - just navigate
-                window.open(url, '_blank');
+                // No share API - copy to clipboard
+                await copyToClipboard(url);
             }
         };
+        
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Link copied to clipboard!');
+            }
+        }
     </script>
 </body>
 

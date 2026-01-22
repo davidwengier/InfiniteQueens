@@ -40,9 +40,9 @@
                             <span class="game-time">@FormatTime(game.Time)</span>
                             @if (game.Seed.HasValue)
                             {
-                                <a href="@GetSeedUrl(game.Seed.Value)" @onclick="() => OpenSeedLink(game.Seed.Value)" @onclick:preventDefault class="game-seed" title="Open this board in new tab">
-                                    Seed: @game.Seed.Value
-                                </a>
+                                <button class="game-seed" @onclick="() => ShareSeedLink(game.Seed.Value)" title="Share this board">
+                                    📤 Seed: @game.Seed.Value
+                                </button>
                             }
                         </div>
                     }
@@ -87,9 +87,10 @@
         return $"?size={BoardSize}&seed={seed}";
     }
     
-    private async Task OpenSeedLink(int seed)
+    private async Task ShareSeedLink(int seed)
     {
         var url = NavigationManager.ToAbsoluteUri(GetSeedUrl(seed)).ToString();
-        await JSRuntime.InvokeVoidAsync("openExternalLink", url);
+        var title = $"Infinite Queens {BoardSize}x{BoardSize} Game";
+        await JSRuntime.InvokeVoidAsync("shareLink", url, title);
     }
 }
