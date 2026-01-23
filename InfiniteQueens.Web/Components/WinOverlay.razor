@@ -12,6 +12,12 @@
             {
                 <span style="font-size: 18px; display: block; text-align: center; margin-top: 10px;">Solved in @FormatTime(CompletionTime.Value)!</span>
             }
+            @if (Seed.HasValue)
+            {
+                <div style="font-size: 14px; color: #888; margin-top: 8px;">
+                    Seed: <span style="font-family: monospace; color: #2196F3;">@Seed.Value</span>
+                </div>
+            }
 
             @if (Seed.HasValue)
             {
