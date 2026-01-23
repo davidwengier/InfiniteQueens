@@ -12,12 +12,7 @@
             {
                 <span style="font-size: 18px; display: block; text-align: center; margin-top: 10px;">Solved in @FormatTime(CompletionTime.Value)!</span>
             }
-            @if (!string.IsNullOrEmpty(BoardHash))
-            {
-                <div style="font-size: 14px; color: #888; margin-top: 10px;">
-                    Board ID: <span style="font-family: monospace; color: #2196F3;">@BoardHash</span>
-                </div>
-            }
+
             @if (Seed.HasValue)
             {
                 <button class="share-seed-btn" @onclick="ShareSeed">
