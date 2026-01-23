@@ -2,6 +2,26 @@
 (function() {
     let currentVersion = null;
     
+    // On page load, check if we just did a version update and bust CSS cache
+    function bustCssCache() {
+        const url = new URL(window.location.href);
+        const versionBust = url.searchParams.get('_v');
+        if (versionBust) {
+            // We just reloaded for a new version - bust CSS cache
+            const links = document.querySelectorAll('link[rel="stylesheet"]');
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.includes('?')) {
+                    link.setAttribute('href', href + '?_v=' + versionBust);
+                }
+            });
+            
+            // Clean up the URL (remove _v parameter)
+            url.searchParams.delete('_v');
+            window.history.replaceState({}, '', url.toString());
+        }
+    }
+    
     async function checkVersion() {
         try {
             // Add cache-busting parameter to ensure fresh fetch
@@ -26,18 +46,19 @@
                 
                 // Show notification
                 if (confirm('A new version is available! Click OK to reload and get the latest updates.')) {
-                    // Clear all caches
-                    if ('caches' in window) {
-                        caches.keys().then(names => {
-                            names.forEach(name => caches.delete(name));
-                        });
-                    }
-                    
                     // Clear localStorage version
                     localStorage.removeItem('appVersion');
                     
-                    // Force reload from server
-                    window.location.reload(true);
+                    // Clear all caches and then reload
+                    if ('caches' in window) {
+                        const names = await caches.keys();
+                        await Promise.all(names.map(name => caches.delete(name)));
+                    }
+                    
+                    // Navigate with cache-busting parameter to force fresh load
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('_v', Date.now());
+                    window.location.href = url.toString();
                 }
             }
         } catch (error) {
@@ -50,6 +71,9 @@
     if (storedVersion) {
         currentVersion = storedVersion;
     }
+    
+    // Bust CSS cache if we just reloaded for a version update
+    bustCssCache();
     
     // Initial check after page loads
     if (document.readyState === 'loading') {
