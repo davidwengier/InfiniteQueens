@@ -283,8 +283,15 @@
         boardSize = newSize;
         gameState = new GameState(boardSize);
         
-        // Update URL with new size (clear any seed since we're generating a new board)
-        NavigationManager.NavigateTo($"?size={boardSize}", replace: true);
+        // Update URL - preserve seed if loading from URL, otherwise clear it
+        if (isLoadingFromUrlSeed && currentSeed.HasValue)
+        {
+            NavigationManager.NavigateTo($"?size={boardSize}&seed={currentSeed.Value}", replace: true);
+        }
+        else
+        {
+            NavigationManager.NavigateTo($"?size={boardSize}", replace: true);
+        }
         
         // Now show spinner and generate
         isGenerating = true;
