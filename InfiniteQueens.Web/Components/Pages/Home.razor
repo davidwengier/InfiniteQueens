@@ -50,10 +50,10 @@
 
     @if (!isGenerating && currentGameNumber > 0)
     {
-        <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
+        <h2 style="margin-top: 20px; margin-bottom: 0; color: #2196F3;">@(boardSize)x@(boardSize) Game #@currentGameNumber</h2>
         @if (currentSeed.HasValue)
         {
-            <div style="font-size: 14px; color: #888; margin-top: 5px;">
+            <div style="font-size: 14px; color: #888; margin-top: 2px;">
                 Seed: <span style="font-family: monospace; color: #2196F3;">@currentSeed.Value</span>
             </div>
         }
@@ -61,8 +61,8 @@
     }
     else if (!isGenerating && currentGameNumber == 0 && currentSeed.HasValue)
     {
-        <h2 style="margin-top: 20px; color: #2196F3;">@(boardSize)x@(boardSize) Shared Game</h2>
-        <div style="font-size: 14px; color: #888; margin-top: 5px;">
+        <h2 style="margin-top: 20px; margin-bottom: 0; color: #2196F3;">@(boardSize)x@(boardSize) Shared Game</h2>
+        <div style="font-size: 14px; color: #888; margin-top: 2px;">
             Seed: <span style="font-family: monospace; color: #2196F3;">@currentSeed.Value</span>
         </div>
         <TimerDisplay ShowTimer="@timedMode" ElapsedTime="@elapsedTime" />
