@@ -478,6 +478,7 @@ p {
     -webkit-user-drag: none;
     outline: none;
     -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
 }
 
 /* Bold borders for region boundaries */
