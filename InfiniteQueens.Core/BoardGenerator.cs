@@ -1,8 +1,25 @@
 namespace InfiniteQueens.Services;
 
+public enum RegionGeneratorType
+{
+    Organic,
+    ShapeTemplate
+}
+
 public class BoardGenerator
 {
-    public int[,] GenerateRegions(int boardSize, int? seed = null)
+    private readonly ShapeTemplateGenerator _shapeGenerator = new();
+
+    public int[,] GenerateRegions(int boardSize, int? seed = null, RegionGeneratorType type = RegionGeneratorType.Organic)
+    {
+        return type switch
+        {
+            RegionGeneratorType.ShapeTemplate => _shapeGenerator.GenerateRegions(boardSize, seed),
+            _ => GenerateOrganicRegions(boardSize, seed)
+        };
+    }
+
+    private int[,] GenerateOrganicRegions(int boardSize, int? seed = null)
     {
         var random = seed.HasValue ? new Random(seed.Value) : new Random();
         

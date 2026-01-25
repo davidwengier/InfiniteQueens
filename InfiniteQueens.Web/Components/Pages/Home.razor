@@ -89,6 +89,12 @@
             Label="Timed games"
             IsChecked="@timedMode"
             OnToggle="@ToggleTimedMode" />
+        
+        <ToggleSwitch 
+            Label="Geometric shapes"
+            IsChecked="@useShapeTemplates"
+            Disabled="@isGenerating"
+            OnToggle="@ToggleShapeTemplates" />
     </div>
 
     <HistoryPane 
@@ -133,6 +139,7 @@
     private int? currentSeed = null;
     private bool isLoadingFromUrlSeed = false; // Track if current seed is from URL parameter
     private DotNetObjectReference<Home>? dotNetHelper;
+    private bool useShapeTemplates = false;
 
     protected override void OnInitialized()
     {
@@ -352,7 +359,8 @@
                 
                 await Task.Delay(20);
                 
-                var regions = BoardGenerator.GenerateRegions(boardSize, seedValue);
+                var generatorType = useShapeTemplates ? RegionGeneratorType.ShapeTemplate : RegionGeneratorType.Organic;
+                var regions = BoardGenerator.GenerateRegions(boardSize, seedValue, generatorType);
                 
                 await InvokeAsync(() =>
                 {
@@ -388,7 +396,8 @@
                     
                     await Task.Delay(20); // Small delay for UI update
                     
-                    var regions = BoardGenerator.GenerateRegions(boardSize, trySeed);
+                    var generatorType = useShapeTemplates ? RegionGeneratorType.ShapeTemplate : RegionGeneratorType.Organic;
+                    var regions = BoardGenerator.GenerateRegions(boardSize, trySeed, generatorType);
                     
                     await InvokeAsync(() =>
                     {
@@ -522,6 +531,21 @@
     private void ToggleTimedMode()
     {
         timedMode = !timedMode;
+    }
+    
+    private async void ToggleShapeTemplates()
+    {
+        if (!isGenerating)
+        {
+            useShapeTemplates = !useShapeTemplates;
+            
+            // Regenerate the board with new generator type
+            isGenerating = true;
+            StateHasChanged();
+            await Task.Delay(100);
+            
+            await ResetGameAsync();
+        }
     }
     
     private void CloseWinOverlay()
