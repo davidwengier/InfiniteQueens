@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Infinite Queens</title>
+    <base href="/InfiniteQueens/" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon.png" />
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#2196F3" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Infinite Queens" />
+    
+    <!-- Application CSS -->
+    <link rel="stylesheet" href="app.css" />
+</head>
+
+<body>
+    <div id="app">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <p style="font-size: 2em;">⏳</p>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="version-check.js"></script>
+    <script>
+        window.getCellAtPoint = function(x, y) {
+            // Find the element at the given point
+            var element = document.elementFromPoint(x, y);
+            
+            // Walk up the DOM tree to find a cell element
+            while (element && !element.classList.contains('cell')) {
+                element = element.parentElement;
+            }
+            
+            // If we found a cell, get its row and col attributes
+            if (element && element.classList.contains('cell')) {
+                var row = parseInt(element.getAttribute('data-row'));
+                var col = parseInt(element.getAttribute('data-col'));
+                if (!isNaN(row) && !isNaN(col)) {
+                    return [row, col];
+                }
+            }
+            
+            return null;
+        };
+
+        window.setupGlobalPointerHandlers = function(dotnetHelper) {
+            // Add global pointer up handler to catch releases outside the board
+            document.addEventListener('pointerup', function() {
+                dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
+            });
+            
+            document.addEventListener('pointercancel', function() {
+                dotnetHelper.invokeMethodAsync('HandleGlobalPointerUp');
+            });
+            
+            // Prevent double-tap zoom on mobile but allow cell taps
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e) {
+                const now = Date.now();
+                const target = e.target;
+                const isGameCell = target.closest('.cell') !== null;
+                
+                // Prevent double-tap zoom everywhere except on game cells
+                if (now - lastTouchEnd <= 300 && !isGameCell) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+        };
+
+        // Share link using native share dialog, or copy to clipboard as fallback
+        window.shareLink = async function(url, title) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        url: url
+                    });
+                } catch (err) {
+                    // User cancelled or share failed - ignore
+                    if (err.name !== 'AbortError') {
+                        // Fallback to clipboard
+                        await copyToClipboard(url);
+                    }
+                }
+            } else {
+                // No share API - copy to clipboard
+                await copyToClipboard(url);
+            }
+        };
+        
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert('Link copied to clipboard!');
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('Link copied to clipboard!');
+            }
+        }
+    </script>
+</body>
+
+</html>
