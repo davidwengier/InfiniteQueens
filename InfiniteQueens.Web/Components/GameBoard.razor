@@ -19,7 +19,15 @@
             var isAutoMark = GameState.AutoMarks[row, col];
             var hasConflict = GameState.HasConflict(row, col);
             
-            <div class="cell region-@region @(hasConflict ? "conflict" : "")"
+            // Determine which borders should be bold (region boundaries)
+            var borderTop = r > 0 && GameState.Regions[r - 1, c] != region;
+            var borderBottom = r < BoardSize - 1 && GameState.Regions[r + 1, c] != region;
+            var borderLeft = c > 0 && GameState.Regions[r, c - 1] != region;
+            var borderRight = c < BoardSize - 1 && GameState.Regions[r, c + 1] != region;
+            
+            var borderClass = $"{(borderTop ? "border-top " : "")}{(borderBottom ? "border-bottom " : "")}{(borderLeft ? "border-left " : "")}{(borderRight ? "border-right " : "")}";
+            
+            <div class="cell region-@region @(hasConflict ? "conflict" : "") @borderClass"
                  data-row="@r"
                  data-col="@c"
                  @onclick="() => OnCellClick.InvokeAsync((r, c))"

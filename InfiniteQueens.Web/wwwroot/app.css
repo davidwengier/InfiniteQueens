@@ -480,6 +480,23 @@ p {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Bold borders for region boundaries */
+.cell.border-top {
+    border-top: 2px solid #333;
+}
+
+.cell.border-bottom {
+    border-bottom: 2px solid #333;
+}
+
+.cell.border-left {
+    border-left: 2px solid #333;
+}
+
+.cell.border-right {
+    border-right: 2px solid #333;
+}
+
 /* Responsive scaling for mobile devices */
 @media (max-width: 600px) {
     .game-container {
